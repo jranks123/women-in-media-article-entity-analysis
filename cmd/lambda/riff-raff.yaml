@@ -1,0 +1,33 @@
+stacks: [playground]
+regions: [eu-west-1]
+
+templates:
+  article-content-analysis:
+    type: aws-lambda
+    app: article-content-analysis
+    contentDirectory: article-content-analysis
+    parameters:
+      bucket: gu-article-content-analysis-dist
+      functionNames: [article-content-analysis-]
+      fileName:  article-content-analysis.zip
+      prefixStack: false
+
+deployments:
+  article-content-analysis-upload:
+    template: article-content-analysis
+    actions: [uploadLambda]
+
+  article-content-analysis-cfn:
+    type: cloud-formation
+    app: article-content-analysis
+    dependencies: [article-content-analysis-upload]
+    parameters:
+      prependStackToCloudFormationStackName: false
+      cloudFormationStackName: article-content-analysis
+      templatePath: cfn.yaml
+
+  article-content-analysis-lambda-update:
+    template: article-content-analysis
+    actions: [updateLambda]
+    dependencies: [article-content-analysis-cfn]
+
