@@ -105,8 +105,8 @@ func AddGenderToContentAnalysis(contentAnalysis *models.ContentAnalysis) (*model
 
 }
 
-func GetContentAnalysisForPath(path string, capiKey string) (*models.ContentAnalysis, error) {
-	contentAnalysis, err := services.GetContentAnalysisFromS3(path) //will return error if object is not in s3
+func GetContentAnalysisForUrl(url string, capiKey string) (*models.ContentAnalysis, error) {
+	contentAnalysis, err := services.GetContentAnalysisFromPostgres(url) //will return error if object is not in s3
 
 	if err != nil {
 		fmt.Println("article was not in DB")
@@ -117,19 +117,19 @@ func GetContentAnalysisForPath(path string, capiKey string) (*models.ContentAnal
 		return contentAnalysis, nil
 	}
 
-	articleFields, err := services.GetArticleFieldsFromCapi(path, capiKey)
+	articleFields, err := services.GetArticleFieldsFromCapi(url, capiKey)
 
 	if err != nil {
-		return nil, errors.Wrap(err, "Couldn't get article fields from CAPI for given path")
+		return nil, errors.Wrap(err, "Couldn't get article fields from CAPI for given url")
 	}
 
-	entities, err := services.GetEntitiesFromPath(path)
+	entities, err := services.GetEntitiesFromUrl(url)
 
 	if err != nil {
-		return nil, errors.Wrap(err, "Couldn't get entities for given path")
+		return nil, errors.Wrap(err, "Couldn't get entities for given url")
 	}
 
-	contentAnalysis = ConstructContentAnalysis(path, articleFields, entities, false)
+	contentAnalysis = ConstructContentAnalysis(url, articleFields, entities, false)
 
 	contentAnalysisWithGender, err := AddGenderToContentAnalysis(contentAnalysis)
 
@@ -158,7 +158,7 @@ func GetContentAnalysisForDateRange(fromDate string, endDate string, apiKey stri
 	var results []*models.ContentAnalysis = nil
 
 	for _, article := range articlesInRange.Results {
-		analysis, err := GetContentAnalysisForPath(article.Id, apiKey)
+		analysis, err := GetContentAnalysisForUrl(article.Id, apiKey)
 
 		if err != nil {
 			fmt.Println("did not work for article " + article.Id)

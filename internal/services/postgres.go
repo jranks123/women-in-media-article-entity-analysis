@@ -1,87 +1,40 @@
 package services
 
 import (
-	"encoding/json"
+	"database/sql"
 	"fmt"
-	"github.com/pkg/errors"
-	"github.com/tidwall/gjson"
-	"io/ioutil"
-	"net/http"
-	"strconv"
 	"women-in-media-article-entity-analysis/internal/models"
-	"women-in-media-article-entity-analysis/internal/utils"
 )
 
-func GetArticleFieldsFromCapi(path string, apiKey string) (*models.Content, error) {
-	var articleFields = new(models.Content)
-	urlPrefix := "https://content.guardianapis.com"
-	urlSuffix := "?api-key=" + apiKey + "&show-fields=byline,bodyText,headline"
-	url := urlPrefix + path + urlSuffix
-	resp, err := http.Get(url)
-	if err != nil {
-		return articleFields, errors.Wrap(err, "no response from CAPI")
-	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return articleFields, errors.Wrap(err, "could not read body test")
-	}
-
-	//TODO: validate response
-	fields := gjson.Get(string(body), "response.content").Raw
-	fieldsBytes := []byte(fields)
-	articleFieldsError := json.Unmarshal(fieldsBytes, &articleFields)
-	if articleFieldsError != nil {
-		return nil, errors.Wrap(articleFieldsError, "could not parse response from CAPI: "+string(body))
-	}
-
-	articleFields.WebPublicationDate, err = utils.FormatDate(articleFields.WebPublicationDate)
-
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to format date")
-	}
-
-	return articleFields, nil
+type contributionsDatabase struct {
+	underlying *sql.DB
+	stmts      map[string]*sql.Stmt
 }
 
-func GetArticleFieldsFromCapiForDateRange(fromDate string, endDate string, apiKey string) (*models.CapiSearchResponse, error) {
-	var fullResults = new(models.CapiSearchResponse)
+func connectToPostgres(p DbParameters) (*sql.DB, error) {
+	connStr := fmt.Sprintf(
+		"dbname=contributions user=%s password=%s host=%s port=%d",
+		p.User,
+		p.Password,
+		p.Host,
+		p.Port,
+	)
+	return sql.Open("postgres", connStr)
+}
 
-	for pageIndex := 1; pageIndex < 60; pageIndex++ {
-		fmt.Println(pageIndex)
-		index := pageIndex
-
-		var capiReponse = new(models.CapiSearchResponse)
-		urlPrefix := "https://content.guardianapis.com/search"
-		urlSuffix := "?api-key=" + apiKey + "&from-date=" + fromDate + "&to-date=" + endDate + "&page-size=200" + "&page=" + strconv.Itoa(index)
-		url := urlPrefix + urlSuffix
-		fmt.Println(url)
-		resp, err := http.Get(url)
-		if err != nil {
-			return nil, errors.Wrap(err, "no response from CAPI")
-		}
-		defer resp.Body.Close()
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return nil, errors.Wrap(err, "could not read body test")
-		}
-
-		//TODO: validate response
-		fields := gjson.Get(string(body), "response").Raw
-		fieldsBytes := []byte(fields)
-		capiResponseError := json.Unmarshal(fieldsBytes, &capiReponse)
-		if capiResponseError != nil {
-			return nil, errors.Wrap(capiResponseError, "could not parse response from CAPI")
-		}
-		if capiReponse.Status == "error" {
-			//reachedEndOfResults = true
-		} else {
-			for _, result := range capiReponse.Results {
-				result.Id = "/" + result.Id
-				fullResults.Results = append(fullResults.Results, result)
-			}
-		}
-
+func newContributionsDatabase(p DbParameters) (*contributionsDatabase, error) {
+	db, err := connectToPostgres(p)
+	if err != nil {
+		return nil, err
 	}
-	return fullResults, nil
+
+	return &contributionsDatabase{
+		underlying: db,
+		stmts:      make(map[string]*sql.Stmt),
+	}, nil
+}
+
+func getArticleFieldsFromUrl(url string) (*models.Content, error) {
+	// call postgres with query
+	return nil, nil
 }

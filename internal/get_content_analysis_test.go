@@ -7,7 +7,7 @@ import (
 )
 
 func TestGetContentAnalysis(t *testing.T) {
-	res, err := GetContentAnalysisForPath("/uk-news/2019/apr/11/julian-assange-arrested-at-ecuadorian-embassy-wikileaks", "test")
+	res, err := GetContentAnalysisForUrl("/uk-news/2019/apr/11/julian-assange-arrested-at-ecuadorian-embassy-wikileaks", "test")
 
 	if err != nil {
 		t.Error(err)
