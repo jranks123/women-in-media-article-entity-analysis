@@ -22,6 +22,7 @@ type GenderAnalysis struct {
 }
 type Content struct {
 	WebPublicationDate string        `json:"webPublicationDate"`
+	Url                string        `json:"url"`
 	Section            string        `json:"sectionId"`
 	Fields             ContentFields `json:"fields"`
 	Id                 string        `json:"id"`

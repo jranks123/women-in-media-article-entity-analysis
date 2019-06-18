@@ -49,6 +49,7 @@ func (i *Articles) Article() (models.Content, error) {
 
 	return models.Content{
 		WebPublicationDate: published,
+		Url:                canonical_url,
 		Section:            section,
 		Fields: models.ContentFields{
 			Headline: headline,
