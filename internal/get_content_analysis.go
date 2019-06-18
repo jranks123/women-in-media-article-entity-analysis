@@ -106,46 +106,48 @@ func AddGenderToContentAnalysis(contentAnalysis *models.ContentAnalysis) (*model
 }
 
 func GetContentAnalysisForUrl(url string, capiKey string) (*models.ContentAnalysis, error) {
-	contentAnalysis, err := services.GetContentAnalysisFromPostgres(url) //will return error if object is not in s3
+	//contentAnalysis, err := services.GetArticleFields() //will return error if object is not in s3
+	//
+	//if err != nil {
+	//	fmt.Println("article was not in DB")
+	//}
 
-	if err != nil {
-		fmt.Println("article was not in DB")
-	}
+	//if contentAnalysis != nil {
+	//	contentAnalysis.CacheHit = true
+	//	return contentAnalysis, nil
+	//}
+	//
+	//articleFields, err := services.GetArticleFieldsFromCapi(url, capiKey)
+	//
+	//if err != nil {
+	//	return nil, errors.Wrap(err, "Couldn't get article fields from CAPI for given url")
+	//}
+	//
+	//entities, err := services.GetEntitiesFromUrl(url)
+	//
+	//if err != nil {
+	//	return nil, errors.Wrap(err, "Couldn't get entities for given url")
+	//}
+	//
+	//contentAnalysis = ConstructContentAnalysis(url, articleFields, entities, false)
+	//
+	//contentAnalysisWithGender, err := AddGenderToContentAnalysis(contentAnalysis)
+	//
+	//if err != nil {
+	//	return nil, errors.Wrap(err, "Error adding gender to people")
+	//}
+	//
+	//storeContentAnalysisInS3Error := services.StoreContentAnalysisInS3(contentAnalysisWithGender)
+	//
+	//fmt.Println()
+	//
+	//if storeContentAnalysisInS3Error != nil {
+	//	return nil, errors.Wrap(storeContentAnalysisInS3Error, "Could not store in S3")
+	//}
+	//
+	//return contentAnalysis, nil
 
-	if contentAnalysis != nil {
-		contentAnalysis.CacheHit = true
-		return contentAnalysis, nil
-	}
-
-	articleFields, err := services.GetArticleFieldsFromCapi(url, capiKey)
-
-	if err != nil {
-		return nil, errors.Wrap(err, "Couldn't get article fields from CAPI for given url")
-	}
-
-	entities, err := services.GetEntitiesFromUrl(url)
-
-	if err != nil {
-		return nil, errors.Wrap(err, "Couldn't get entities for given url")
-	}
-
-	contentAnalysis = ConstructContentAnalysis(url, articleFields, entities, false)
-
-	contentAnalysisWithGender, err := AddGenderToContentAnalysis(contentAnalysis)
-
-	if err != nil {
-		return nil, errors.Wrap(err, "Error adding gender to people")
-	}
-
-	storeContentAnalysisInS3Error := services.StoreContentAnalysisInS3(contentAnalysisWithGender)
-
-	fmt.Println()
-
-	if storeContentAnalysisInS3Error != nil {
-		return nil, errors.Wrap(storeContentAnalysisInS3Error, "Could not store in S3")
-	}
-
-	return contentAnalysis, nil
+	return nil, nil
 }
 
 func GetContentAnalysisForDateRange(fromDate string, endDate string, apiKey string) ([]*models.ContentAnalysis, error) {

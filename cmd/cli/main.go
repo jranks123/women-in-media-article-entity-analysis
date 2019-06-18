@@ -2,10 +2,6 @@ package main
 
 import (
 	"flag"
-	"github.com/pkg/errors"
-	"log"
-	"women-in-media-article-entity-analysis/internal"
-	"women-in-media-article-entity-analysis/internal/services"
 )
 
 var (
@@ -22,22 +18,4 @@ var (
 
 func main() {
 
-	flag.Parse()
-
-	p := services.JobParameters{
-		From:         *from,
-		To:           *to,
-		MissingDates: *missing,
-		StepMode:     *stepMode,
-		Db: services.DbParameters{
-			Host:     "localhost",
-			Port:     *port,
-			User:     *user,
-			Password: *password,
-		},
-	}
-
-	if err := internal.CreateGuestAccount(p); err != nil {
-		log.Fatal(errors.Wrap(err, "unable to create guest account"))
-	}
 }

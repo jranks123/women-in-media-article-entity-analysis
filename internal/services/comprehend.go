@@ -32,16 +32,16 @@ func GetEntitiesFromBodyText(bodyText string) ([]*comprehend.Entity, error) {
 	return result.Entities, nil
 }
 
-func GetEntitiesFromUrl(url string) ([]*comprehend.Entity, error) {
-	articleFields, err := getArticleFieldsFromUrl(url)
+func GetEntitiesForArticle(url string) ([]*comprehend.Entity, error) {
+	articleFields, err := GetArticleFields()
 	if err != nil {
 		return nil, errors.Wrap(err, "Couldn't get article fields from postgres for given path")
 	}
-	var bodyText = articleFields.Fields.BodyText
+	var bodyText = articleFields[0].Fields.BodyText
 
 	// hack to stop it failing on long articles
 	if len(bodyText) > 4999 {
-		bodyText = articleFields.Fields.BodyText[0:4999]
+		bodyText = articleFields[0].Fields.BodyText[0:4999]
 	}
 	entities, err := GetEntitiesFromBodyText(bodyText)
 
