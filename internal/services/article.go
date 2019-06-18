@@ -2,7 +2,6 @@ package services
 
 import (
 	"database/sql"
-	"fmt"
 	"women-in-media-article-entity-analysis/internal/models"
 )
 
@@ -62,7 +61,10 @@ func (i *Articles) Article() (models.Content, error) {
 
 func GetArticles(db *sql.DB, params ArticleQueryParams) ([]models.Content, error) {
 	rows, err := db.Query(
-		"SELECT article.id as id, published, content, canonical_url, headline, name, section FROM article join author on article.id  = author.id  ORDER BY published::date ASC limit 10",
+		"SELECT article.id, published, content, canonical_url, headline, name, section FROM article join author on article.id  = author.id WHERE published::date BETWEEN $1 AND $2 and section = $3 ORDER BY published::date ASC",
+		params.From,
+		params.To,
+		params.Section,
 	)
 	if err != nil {
 		return nil, err
@@ -75,7 +77,6 @@ func GetArticles(db *sql.DB, params ArticleQueryParams) ([]models.Content, error
 	for articles.Next() {
 		article, err := articles.Article()
 		if err == nil {
-			fmt.Print(article.Section)
 			contentArrray = append(contentArrray, article)
 		}
 	}

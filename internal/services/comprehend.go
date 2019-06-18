@@ -3,6 +3,7 @@ package services
 import (
 	"github.com/aws/aws-sdk-go/service/comprehend"
 	"github.com/pkg/errors"
+	"women-in-media-article-entity-analysis/internal/models"
 )
 
 func GetComprehendClient(profile string) (*comprehend.Comprehend, error) {
@@ -32,16 +33,13 @@ func GetEntitiesFromBodyText(bodyText string) ([]*comprehend.Entity, error) {
 	return result.Entities, nil
 }
 
-func GetEntitiesForArticle(url string) ([]*comprehend.Entity, error) {
-	articleFields, err := GetArticleFields()
-	if err != nil {
-		return nil, errors.Wrap(err, "Couldn't get article fields from postgres for given path")
-	}
-	var bodyText = articleFields[0].Fields.BodyText
+func GetEntitiesForArticle(article models.Content) ([]*comprehend.Entity, error) {
+
+	var bodyText = article.Fields.BodyText
 
 	// hack to stop it failing on long articles
 	if len(bodyText) > 4999 {
-		bodyText = articleFields[0].Fields.BodyText[0:4999]
+		bodyText = article.Fields.BodyText[0:4999]
 	}
 	entities, err := GetEntitiesFromBodyText(bodyText)
 
