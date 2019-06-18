@@ -1,4 +1,4 @@
-package internal
+package services
 
 import (
 	"encoding/json"
@@ -6,8 +6,8 @@ import (
 	"testing"
 )
 
-func TestGetContentAnalysis(t *testing.T) {
-	res, err := GetContentAnalysis()
+func TestGetArticleFields(t *testing.T) {
+	res, err := GetArticleFields()
 
 	if err != nil {
 		t.Error(err)

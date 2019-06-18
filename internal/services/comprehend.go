@@ -3,10 +3,11 @@ package services
 import (
 	"github.com/aws/aws-sdk-go/service/comprehend"
 	"github.com/pkg/errors"
+	"women-in-media-article-entity-analysis/internal/models"
 )
 
 func GetComprehendClient(profile string) (*comprehend.Comprehend, error) {
-	sess, err := GetAwsSession(profile, "eu-west-1")
+	sess, err := GetAwsSession(profile, "us-east-1")
 
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to create new sessions")
@@ -16,7 +17,7 @@ func GetComprehendClient(profile string) (*comprehend.Comprehend, error) {
 }
 
 func GetEntitiesFromBodyText(bodyText string) ([]*comprehend.Entity, error) {
-	client, err := GetComprehendClient("developerPlayground")
+	client, err := GetComprehendClient("bechdel")
 
 	if err != nil {
 		return nil, errors.Wrap(err, "couldn't create client")
@@ -32,16 +33,13 @@ func GetEntitiesFromBodyText(bodyText string) ([]*comprehend.Entity, error) {
 	return result.Entities, nil
 }
 
-func GetEntitiesFromPath(path string) ([]*comprehend.Entity, error) {
-	articleFields, err := GetArticleFieldsFromCapi(path, "test")
-	if err != nil {
-		return nil, errors.Wrap(err, "Couldn't get article fields from CAPI for given path")
-	}
-	var bodyText = articleFields.Fields.BodyText
+func GetEntitiesForArticle(article models.Content) ([]*comprehend.Entity, error) {
+
+	var bodyText = article.Fields.BodyText
 
 	// hack to stop it failing on long articles
 	if len(bodyText) > 4999 {
-		bodyText = articleFields.Fields.BodyText[0:4999]
+		bodyText = article.Fields.BodyText[0:4999]
 	}
 	entities, err := GetEntitiesFromBodyText(bodyText)
 

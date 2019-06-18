@@ -9,7 +9,7 @@ import (
 	"women-in-media-article-entity-analysis/internal/services"
 )
 
-func ConstructContentAnalysis(path string, content *models.Content, entities []*comprehend.Entity, cacheHit bool) *models.ContentAnalysis {
+func ConstructContentAnalysis(content models.Content, entities []*comprehend.Entity, cacheHit bool) *models.ContentAnalysis {
 	var bylines []*models.Byline = nil
 
 	bylinesArray := strings.Split(strings.Replace(content.Fields.Byline, " and ", ",", -1), ",")
@@ -48,7 +48,7 @@ func ConstructContentAnalysis(path string, content *models.Content, entities []*
 	}
 
 	contentAnalysis := models.ContentAnalysis{
-		Path:               path,
+		Path:               content.Url,
 		Headline:           content.Fields.Headline,
 		BodyText:           content.Fields.BodyText,
 		Bylines:            bylines,
@@ -105,70 +105,28 @@ func AddGenderToContentAnalysis(contentAnalysis *models.ContentAnalysis) (*model
 
 }
 
-func GetContentAnalysisForPath(path string, capiKey string) (*models.ContentAnalysis, error) {
-	contentAnalysis, err := services.GetContentAnalysisFromS3(path) //will return error if object is not in s3
-
+func GetContentAnalysis() ([]*models.ContentAnalysis, error) {
+	contentSlice, err := services.GetArticleFields() //will return error if object is not in s3
 	if err != nil {
-		fmt.Println("article was not in DB")
+		fmt.Println("Failed to get articles")
 	}
 
-	if contentAnalysis != nil {
-		contentAnalysis.CacheHit = true
-		return contentAnalysis, nil
-	}
+	var contentAnalysisSlice []*models.ContentAnalysis
 
-	articleFields, err := services.GetArticleFieldsFromCapi(path, capiKey)
+	for _, element := range contentSlice {
 
-	if err != nil {
-		return nil, errors.Wrap(err, "Couldn't get article fields from CAPI for given path")
-	}
+		// TODO: check to see if we've already run the analysis for this article
 
-	entities, err := services.GetEntitiesFromPath(path)
-
-	if err != nil {
-		return nil, errors.Wrap(err, "Couldn't get entities for given path")
-	}
-
-	contentAnalysis = ConstructContentAnalysis(path, articleFields, entities, false)
-
-	contentAnalysisWithGender, err := AddGenderToContentAnalysis(contentAnalysis)
-
-	if err != nil {
-		return nil, errors.Wrap(err, "Error adding gender to people")
-	}
-
-	storeContentAnalysisInS3Error := services.StoreContentAnalysisInS3(contentAnalysisWithGender)
-
-	fmt.Println()
-
-	if storeContentAnalysisInS3Error != nil {
-		return nil, errors.Wrap(storeContentAnalysisInS3Error, "Could not store in S3")
-	}
-
-	return contentAnalysis, nil
-}
-
-func GetContentAnalysisForDateRange(fromDate string, endDate string, apiKey string) ([]*models.ContentAnalysis, error) {
-	articlesInRange, err := services.GetArticleFieldsFromCapiForDateRange(fromDate, endDate, apiKey)
-
-	if err != nil {
-		return nil, errors.Wrap(err, "Could not get articles from CAPI")
-	}
-
-	var results []*models.ContentAnalysis = nil
-
-	for _, article := range articlesInRange.Results {
-		analysis, err := GetContentAnalysisForPath(article.Id, apiKey)
-
+		entities, err := services.GetEntitiesForArticle(element)
 		if err != nil {
-			fmt.Println("did not work for article " + article.Id)
-			fmt.Println(err)
-		} else {
-			fmt.Println("worked for article " + article.Id)
-			results = append(results, analysis)
+			return nil, errors.Wrap(err, "Error getting entities for article "+element.Url)
 		}
+		contentAnalysis := ConstructContentAnalysis(element, entities, false)
+		contentAnalysisWithGender, err := AddGenderToContentAnalysis(contentAnalysis)
+		contentAnalysisSlice = append(contentAnalysisSlice, contentAnalysisWithGender)
 	}
 
-	return results, nil
+	return contentAnalysisSlice, nil
 
+	// TODO: write a function that stores the content analysis
 }

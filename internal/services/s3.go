@@ -17,7 +17,7 @@ const BucketName = "gu-article-content-analysis" //TODO - config?
 func GetContentAnalysisFromS3(path string) (*models.ContentAnalysis, error) {
 	var contentAnalysis *models.ContentAnalysis = nil
 
-	sess, err := GetAwsSession("developerPlayground", "eu-west-1")
+	sess, err := GetAwsSession("bechdel", "us-east-1")
 	if err != nil {
 		return contentAnalysis, errors.Wrap(err, "failed to create aws session")
 	}
@@ -43,7 +43,7 @@ func GetContentAnalysisFromS3(path string) (*models.ContentAnalysis, error) {
 }
 
 func StoreContentAnalysisInS3(contentAnalysis *models.ContentAnalysis) error {
-	sess, err := GetAwsSession("developerPlayground", "eu-west-1")
+	sess, err := GetAwsSession("bechdel", "us-east-1")
 
 	uploader := s3manager.NewUploader(sess)
 
