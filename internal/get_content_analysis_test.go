@@ -7,7 +7,9 @@ import (
 )
 
 func TestGetContentAnalysis(t *testing.T) {
-	res, err := GetContentAnalysis()
+	query := "SELECT article.id, published, content, canonical_url, headline, name, section FROM article left join author on article.id  = author.id WHERE article.id ='5377' ORDER BY published::date ASC"
+
+	res, err := GetContentAnalysis(query)
 
 	if err != nil {
 		t.Error(err)

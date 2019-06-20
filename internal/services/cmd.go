@@ -10,8 +10,6 @@ type DbParameters struct {
 
 // Collection of parameters that are typically required when performing tasks.
 type JobParameters struct {
-	From    string // start date to run the job for
-	To      string // end date to run the job for
-	Section string
-	Db      DbParameters
+	Query string
+	Db    DbParameters
 }

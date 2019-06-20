@@ -59,4 +59,5 @@ type ContentAnalysis struct {
 	CacheHit           bool                 `json:"cacheHit"`
 	WebPublicationDate string               `json:"webPublicationDate"`
 	Section            string               `json:"section"`
+	Id                 string               `json:"id"`
 }

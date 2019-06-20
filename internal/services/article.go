@@ -2,6 +2,7 @@ package services
 
 import (
 	"database/sql"
+	"fmt"
 	"women-in-media-article-entity-analysis/internal/models"
 )
 
@@ -43,9 +44,13 @@ func (i *Articles) Article() (models.Content, error) {
 
 	err := i.rows.Scan(&id, &published, &content, &canonical_url, &headline, &name, &section)
 	if err != nil {
+		fmt.Println(id, published, content, canonical_url, headline, name, section)
+
 		i.rows.Close()
-		return models.Content{}, err
+		fmt.Println("Trouble")
 	}
+
+	fmt.Println("OIO")
 
 	return models.Content{
 		WebPublicationDate: published,
@@ -60,13 +65,29 @@ func (i *Articles) Article() (models.Content, error) {
 	}, nil
 }
 
-func GetArticles(db *sql.DB, params ArticleQueryParams) ([]models.Content, error) {
+func GetArticles(db *sql.DB, query string) ([]models.Content, error) {
 	rows, err := db.Query(
-		"SELECT article.id, published, content, canonical_url, headline, name, section FROM article join author on article.id  = author.id WHERE published::date BETWEEN $1 AND $2 and section = $3 ORDER BY published::date ASC",
-		params.From,
-		params.To,
-		params.Section,
+		query,
 	)
+	if err != nil {
+		return nil, err
+	}
+
+	articles := Articles{rows: rows}
+
+	var contentArrray []models.Content
+
+	for articles.Next() {
+		article, err := articles.Article()
+		if err == nil {
+			contentArrray = append(contentArrray, article)
+		}
+	}
+	return contentArrray, nil
+}
+
+func GetArticle(db *sql.DB, query string) ([]models.Content, error) {
+	rows, err := db.Query(query)
 	if err != nil {
 		return nil, err
 	}
