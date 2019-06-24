@@ -1,6 +1,8 @@
 package models
 
-import "github.com/aws/aws-sdk-go/service/comprehend"
+import (
+	"github.com/aws/aws-sdk-go/service/comprehend"
+)
 
 type ContentFields struct {
 	Headline string `json:"headline"`

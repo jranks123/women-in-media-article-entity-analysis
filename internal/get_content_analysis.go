@@ -109,15 +109,12 @@ func AddGenderToContentAnalysis(contentAnalysis *models.ContentAnalysis) (*model
 
 func StoreContentAnalysis(dbs *sql.DB, p services.JobParameters, contentAnalysisSlice []*models.ContentAnalysis) error {
 	for _, element := range contentAnalysisSlice {
-		fmt.Print(element)
 		for _, entity := range element.People {
-			fmt.Print("here2")
-			sqlStatement := "INSERT INTO article_entities (id, beginoffset, endoffset, score, text, type, gender) VALUES ($1, $2, $3, $4, $5, $6, $7)"
-			res, err := dbs.Exec(sqlStatement, element.Id, entity.BeginOffset, entity.EndOffset, entity.Score, entity.Text, entity.Type, entity.Gender)
+			sqlStatement := "INSERT INTO article_entities (article_id, beginoffset, endoffset, score, text, type, gender) VALUES ($1, $2, $3, $4, $5, $6, $7)"
+			_, err := dbs.Exec(sqlStatement, element.Id, entity.BeginOffset, entity.EndOffset, entity.Score, entity.Text, entity.Type, entity.Gender)
 			if err != nil {
 				return errors.Wrap(err, "Could not store article")
 			}
-			fmt.Println(res)
 		}
 	}
 
@@ -144,7 +141,9 @@ func GetContentAnalysis(query string) ([]*models.ContentAnalysis, error) {
 
 	defer db.Close()
 
-	contentSlice, err := services.GetArticleFields(db, p) //will return error if object is not in s3
+	contentSlice, err := services.GetArticleFields(db, p)
+
+	println("Content slice size:", len(contentSlice))
 
 	if err != nil {
 		fmt.Println(err, "Failed to get articles")
@@ -156,11 +155,13 @@ func GetContentAnalysis(query string) ([]*models.ContentAnalysis, error) {
 
 		articleHasEntities, err := services.CheckIfArticleHasEntities(element.Url)
 
-		fmt.Print(articleHasEntities)
+		if err != nil {
+			return nil, errors.Wrap(err, "error checking if article has entities")
+		}
 
-		if !articleHasEntities && err == nil {
+		if !articleHasEntities {
 
-			fmt.Print(element.Url)
+			fmt.Println("about to get entities for article", element.Url)
 
 			entities, err := services.GetEntitiesForArticle(element)
 			if err != nil {
@@ -169,6 +170,8 @@ func GetContentAnalysis(query string) ([]*models.ContentAnalysis, error) {
 			contentAnalysis := ConstructContentAnalysis(element, entities, false)
 			contentAnalysisWithGender, err := AddGenderToContentAnalysis(contentAnalysis)
 			contentAnalysisSlice = append(contentAnalysisSlice, contentAnalysisWithGender)
+		} else {
+			fmt.Println("already run analysis for ", element.Url)
 		}
 	}
 

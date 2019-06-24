@@ -13,6 +13,18 @@ type contributionsDatabase struct {
 	stmts      map[string]*sql.Stmt
 }
 
+type QueryResult struct {
+	rows *sql.Rows
+}
+
+func (i *QueryResult) Next() bool {
+	hasNext := i.rows.Next()
+	if !hasNext {
+		i.rows.Close()
+	}
+	return hasNext
+}
+
 func ConnectToPostgres(p DbParameters) (*sql.DB, error) {
 	connStr := fmt.Sprintf(
 		"user=%s password=%s host=%s port=%d",
@@ -36,6 +48,18 @@ func newContributionsDatabase(p DbParameters) (*contributionsDatabase, error) {
 	}, nil
 }
 
+func queryDb(db *sql.DB, query string) (*QueryResult, error) {
+	rows, err := db.Query(
+		query,
+	)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to run query")
+	}
+
+	articles := QueryResult{rows: rows}
+	return &articles, nil
+}
+
 func GetArticleFields(db *sql.DB, p JobParameters) ([]models.Content, error) {
 
 	articles, err := GetArticles(db, p.Query)
@@ -57,7 +81,7 @@ func CheckIfArticleHasEntities(url string) (bool, error) {
 			User:     "article_data_master",
 			Password: "AimangeiL2PhahNah5eXooB9quaiLoo7xi",
 		},
-		Query: fmt.Sprintf("SELECT article.id, published, content, canonical_url, headline, name, section FROM article join author on article.id  = author.id join article_entities ON article.id = article_entities.id WHERE canonical_url = '%s' ORDER BY published ASC", url),
+		Query: fmt.Sprintf("SELECT beginoffset, endoffset, score, text, type as entityType, gender FROM article join article_entities ON article.id = article_entities.article_id WHERE canonical_url = '%s' ORDER BY published ASC", url),
 	}
 
 	db, err := ConnectToPostgres(p.Db)
@@ -67,7 +91,7 @@ func CheckIfArticleHasEntities(url string) (bool, error) {
 
 	defer db.Close()
 
-	articles, err := GetArticles(db, p.Query)
+	articles, err := GetPeople(db, p.Query)
 	if err != nil {
 		return false, errors.Wrap(err, "unable to get contributions")
 	}
