@@ -13,7 +13,19 @@ type contributionsDatabase struct {
 	stmts      map[string]*sql.Stmt
 }
 
-func connectToPostgres(p DbParameters) (*sql.DB, error) {
+type QueryResult struct {
+	rows *sql.Rows
+}
+
+func (i *QueryResult) Next() bool {
+	hasNext := i.rows.Next()
+	if !hasNext {
+		i.rows.Close()
+	}
+	return hasNext
+}
+
+func ConnectToPostgres(p DbParameters) (*sql.DB, error) {
 	connStr := fmt.Sprintf(
 		"user=%s password=%s host=%s port=%d",
 		p.User,
@@ -25,7 +37,7 @@ func connectToPostgres(p DbParameters) (*sql.DB, error) {
 }
 
 func newContributionsDatabase(p DbParameters) (*contributionsDatabase, error) {
-	db, err := connectToPostgres(p)
+	db, err := ConnectToPostgres(p)
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +48,30 @@ func newContributionsDatabase(p DbParameters) (*contributionsDatabase, error) {
 	}, nil
 }
 
-func GetArticleFields() ([]models.Content, error) {
+func queryDb(db *sql.DB, query string) (*QueryResult, error) {
+	rows, err := db.Query(
+		query,
+	)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to run query")
+	}
+
+	articles := QueryResult{rows: rows}
+	return &articles, nil
+}
+
+func GetArticleFields(db *sql.DB, p JobParameters) ([]models.Content, error) {
+
+	articles, err := GetArticles(db, p.Query)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to get contributions")
+	}
+
+	return articles, nil
+}
+
+func CheckIfArticleHasEntities(url string) (bool, error) {
 
 	p := JobParameters{
 		Db: DbParameters{
@@ -46,22 +81,23 @@ func GetArticleFields() ([]models.Content, error) {
 			User:     "article_data_master",
 			Password: "AimangeiL2PhahNah5eXooB9quaiLoo7xi",
 		},
-		From:    "2019-06-17",
-		To:      "2019-06-18",
-		Section: "environment",
+		Query: fmt.Sprintf("SELECT beginoffset, endoffset, score, text, type as entityType, gender FROM article join article_entities ON article.id = article_entities.article_id WHERE canonical_url = '%s' ORDER BY published ASC", url),
 	}
 
-	db, err := connectToPostgres(p.Db)
+	db, err := ConnectToPostgres(p.Db)
 	if err != nil {
-		return nil, errors.Wrap(err, "unable to connect to database")
+		return false, errors.Wrap(err, "unable to connect to database")
 	}
 
 	defer db.Close()
 
-	articles, err := GetArticles(db, ArticleQueryParams{From: p.From, To: p.To, Section: p.Section})
+	articles, err := GetPeople(db, p.Query)
 	if err != nil {
-		return nil, errors.Wrap(err, "unable to get contributions")
+		return false, errors.Wrap(err, "unable to get contributions")
 	}
 
-	return articles, nil
+	if articles != nil {
+		return true, nil
+	}
+	return false, nil
 }

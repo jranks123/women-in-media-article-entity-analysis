@@ -1,6 +1,8 @@
 package models
 
-import "github.com/aws/aws-sdk-go/service/comprehend"
+import (
+	"github.com/aws/aws-sdk-go/service/comprehend"
+)
 
 type ContentFields struct {
 	Headline string `json:"headline"`
@@ -59,4 +61,5 @@ type ContentAnalysis struct {
 	CacheHit           bool                 `json:"cacheHit"`
 	WebPublicationDate string               `json:"webPublicationDate"`
 	Section            string               `json:"section"`
+	Id                 string               `json:"id"`
 }

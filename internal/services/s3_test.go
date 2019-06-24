@@ -20,11 +20,10 @@ func TestGetContentAnalysisFromS3(t *testing.T) {
 
 func TestStoreContentAnalysisInS3(t *testing.T) {
 	contentFields := models.ContentFields{"test_headline", "test_byline", "test_body"}
-	content := models.Content{"2019-04-11T13:35:13Z", "football", contentFields, "test"}
+	content := models.Content{"2019-04-11T13:35:13Z", "https://phescreening.blog.gov.uk/2019/05/21/make-sure-your-leaflets-do-not-get-lost-in-the-post/", "football", contentFields, "test"}
 	var events []*comprehend.Entity = nil
 	contentAnalysis := internal.ConstructContentAnalysis(
-		"/commentisfree/2019/apr/08/wall-street-socialism-jpmorgan-jamie-dimon-bailout",
-		&content,
+		content,
 		events,
 		false,
 	)
