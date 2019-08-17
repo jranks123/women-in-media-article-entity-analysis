@@ -68,6 +68,19 @@ func ConstructContentAnalysis(content models.Content, entities []*comprehend.Ent
 	return &contentAnalysis
 }
 
+func AddGenderToContentAnalysisSlice(contentAnalysisSlice []*models.ContentAnalysis) ([]*models.ContentAnalysis, error) {
+	var contentAnalysisWithGenderSlice []*models.ContentAnalysis
+	for _, contentAnalysis := range contentAnalysisSlice {
+		contentAnalysisWithGender, err := AddGenderToContentAnalysis(contentAnalysis)
+		if err != nil {
+			return nil, errors.Wrap(err, "Error appending gender for slice for "+contentAnalysis.Path)
+		}
+		contentAnalysisWithGenderSlice = append(contentAnalysisWithGenderSlice, contentAnalysisWithGender)
+		return contentAnalysisWithGenderSlice, nil
+	}
+	return contentAnalysisWithGenderSlice, nil
+}
+
 func AddGenderToContentAnalysis(contentAnalysis *models.ContentAnalysis) (*models.ContentAnalysis, error) {
 	for _, person := range contentAnalysis.People {
 		genderAnalysis, err := services.GetGenderAnalysis(*person.Text)
@@ -107,13 +120,33 @@ func AddGenderToContentAnalysis(contentAnalysis *models.ContentAnalysis) (*model
 
 }
 
-func StoreContentAnalysis(dbs *sql.DB, p services.JobParameters, contentAnalysisSlice []*models.ContentAnalysis) error {
+func StoreArticleAnalysis(dbs *sql.DB, p services.JobParameters, entity *models.Person, element *models.ContentAnalysis) error {
+	sqlStatement := "INSERT INTO article_entities (article_id, beginoffset, endoffset, score, text, type) VALUES ($1, $2, $3, $4, $5, $6,)"
+	_, err := dbs.Exec(sqlStatement, element.Id, entity.BeginOffset, entity.EndOffset, entity.Score, entity.Text, entity.Type, entity.Gender)
+	if err != nil {
+		return errors.Wrap(err, "Could not store article in article db")
+	}
+	return nil
+}
+
+func StorePersonGender(dbs *sql.DB, p services.JobParameters, entity *models.Person) error {
+	if *entity.Type == "PERSON" {
+		sqlStatement := "INSERT INTO names (name, gender) VALUES ($1, $2) ON conflict (name) do update set gender = $2"
+		_, err := dbs.Exec(sqlStatement, entity.Text, entity.Gender)
+		if err != nil {
+			return errors.Wrap(err, "Could not store name in article db")
+		}
+		return nil
+	}
+	return nil
+}
+
+func StoreAllContentAnalysis(dbs *sql.DB, p services.JobParameters, contentAnalysisSlice []*models.ContentAnalysis) error {
 	for _, element := range contentAnalysisSlice {
 		for _, entity := range element.People {
-			sqlStatement := "INSERT INTO article_entities (article_id, beginoffset, endoffset, score, text, type, gender) VALUES ($1, $2, $3, $4, $5, $6, $7)"
-			_, err := dbs.Exec(sqlStatement, element.Id, entity.BeginOffset, entity.EndOffset, entity.Score, entity.Text, entity.Type, entity.Gender)
+			err := StoreArticleAnalysis(dbs, p, entity, element)
 			if err != nil {
-				return errors.Wrap(err, "Could not store article")
+				return errors.Wrap(err, "Could not store article in article db")
 			}
 		}
 	}
@@ -121,12 +154,11 @@ func StoreContentAnalysis(dbs *sql.DB, p services.JobParameters, contentAnalysis
 	return nil
 }
 
-func GetContentAnalysis(query string) ([]*models.ContentAnalysis, error) {
-
+func GetDbAndParameters(query string) (*sql.DB, *services.JobParameters, error) {
 	p := services.JobParameters{
 		Db: services.DbParameters{
 			DbName:   "public",
-			Host:     "article-data.ckelnxbp6kie.us-east-2.rds.amazonaws.com ",
+			Host:     "article-data.ckelnxbp6kie.us-east-2.rds.amazonaws.com",
 			Port:     5432,
 			User:     "article_data_master",
 			Password: "AimangeiL2PhahNah5eXooB9quaiLoo7xi",
@@ -136,30 +168,64 @@ func GetContentAnalysis(query string) ([]*models.ContentAnalysis, error) {
 
 	db, err := services.ConnectToPostgres(p.Db)
 	if err != nil {
-		return nil, errors.Wrap(err, "unable to connect to database")
+		return nil, nil, errors.Wrap(err, "unable to connect to database")
+
 	}
 
 	defer db.Close()
 
-	contentSlice, err := services.GetArticleFields(db, p)
+	return db, &p, nil
 
-	println("Content slice size:", len(contentSlice))
+}
+
+func RedoGenderAnalysis(query string) error {
+	db, p, err := GetDbAndParameters(query)
 
 	if err != nil {
-		fmt.Println(err, "Failed to get articles")
+		return errors.Wrap(err, "Couldn't get db and job parameters")
 	}
+
+	contentSlice, err := services.GetArticleFields(db, *p)
+	for _, element := range contentSlice {
+		println("hjeol")
+		entitiesFromPostgres, err := services.GetEntitiesFromPostgres(element.Url)
+
+		if err != nil {
+			return errors.Wrap(err, "error checking if article has entities")
+		}
+
+		for _, entity := range entitiesFromPostgres {
+			storeErr := StorePersonGender(db, *p, &entity)
+			if storeErr != nil {
+				return errors.Wrap(storeErr, "Error storing content analysis")
+			}
+		}
+	}
+	return nil
+}
+
+func GetContentAnalysis(query string) ([]*models.ContentAnalysis, error) {
+
+	db, p, err := GetDbAndParameters(query)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "Couldn't get db and job parameters")
+
+	}
+
+	contentSlice, err := services.GetArticleFields(db, *p)
 
 	var contentAnalysisSlice []*models.ContentAnalysis
 
 	for _, element := range contentSlice {
 
-		articleHasEntities, err := services.CheckIfArticleHasEntities(element.Url)
+		entitiesFromPostgres, err := services.GetEntitiesFromPostgres(element.Url)
 
 		if err != nil {
 			return nil, errors.Wrap(err, "error checking if article has entities")
 		}
 
-		if !articleHasEntities {
+		if len(entitiesFromPostgres) == 0 {
 
 			fmt.Println("about to get entities for article", element.Url)
 
@@ -168,14 +234,15 @@ func GetContentAnalysis(query string) ([]*models.ContentAnalysis, error) {
 				return nil, errors.Wrap(err, "Error getting entities for article "+element.Url)
 			}
 			contentAnalysis := ConstructContentAnalysis(element, entities, false)
-			contentAnalysisWithGender, err := AddGenderToContentAnalysis(contentAnalysis)
-			contentAnalysisSlice = append(contentAnalysisSlice, contentAnalysisWithGender)
+			contentAnalysisSlice = append(contentAnalysisSlice, contentAnalysis)
 		} else {
 			fmt.Println("already run analysis for ", element.Url)
 		}
 	}
 
-	storeErr := StoreContentAnalysis(db, p, contentAnalysisSlice)
+	contentAnalysisSlice, err = AddGenderToContentAnalysisSlice(contentAnalysisSlice)
+
+	storeErr := StoreAllContentAnalysis(db, *p, contentAnalysisSlice)
 
 	if storeErr != nil {
 		return nil, errors.Wrap(storeErr, "Error storing content analysis")

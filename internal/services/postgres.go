@@ -71,7 +71,7 @@ func GetArticleFields(db *sql.DB, p JobParameters) ([]models.Content, error) {
 	return articles, nil
 }
 
-func CheckIfArticleHasEntities(url string) (bool, error) {
+func GetEntitiesFromPostgres(url string) ([]models.Person, error) {
 
 	p := JobParameters{
 		Db: DbParameters{
@@ -86,18 +86,16 @@ func CheckIfArticleHasEntities(url string) (bool, error) {
 
 	db, err := ConnectToPostgres(p.Db)
 	if err != nil {
-		return false, errors.Wrap(err, "unable to connect to database")
+		return nil, errors.Wrap(err, "unable to connect to database")
 	}
 
 	defer db.Close()
 
-	articles, err := GetPeople(db, p.Query)
+	entities, err := GetPeople(db, p.Query)
+
 	if err != nil {
-		return false, errors.Wrap(err, "unable to get contributions")
+		return nil, errors.Wrap(err, "Error getting people from Postgres")
 	}
 
-	if articles != nil {
-		return true, nil
-	}
-	return false, nil
+	return entities, nil
 }

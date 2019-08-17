@@ -89,9 +89,9 @@ func GetPeople(db *sql.DB, query string) ([]models.Person, error) {
 
 	for people.Next() {
 
-		article, err := people.Person()
+		person, err := people.Person()
 		if err == nil {
-			peopleArray = append(peopleArray, article)
+			peopleArray = append(peopleArray, person)
 		}
 	}
 	return peopleArray, nil
@@ -108,7 +108,7 @@ func GetArticles(db *sql.DB, query string) ([]models.Content, error) {
 	var contentArrray []models.Content
 
 	for articles.Next() {
-
+		println("artce")
 		article, err := articles.Article()
 		if err == nil {
 			contentArrray = append(contentArrray, article)
