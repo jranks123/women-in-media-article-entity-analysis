@@ -81,39 +81,43 @@ func AddGenderToContentAnalysisSlice(contentAnalysisSlice []*models.ContentAnaly
 	return contentAnalysisWithGenderSlice, nil
 }
 
-func AddGenderToContentAnalysis(contentAnalysis *models.ContentAnalysis) (*models.ContentAnalysis, error) {
-	for _, person := range contentAnalysis.People {
-		genderAnalysis, err := services.GetGenderAnalysis(*person.Text)
+func GetGenderAnalysisForName(name string) (*models.Gender, error) {
+	genderAnalysis, err := services.GetGenderAnalysis(name)
 
-		if err != nil {
-			return nil, errors.Wrap(err, "Error getting gender analysis for "+*person.Text)
+	if err != nil {
+		return nil, errors.Wrap(err, "Error getting gender analysis for "+name)
+	}
+
+	if len(genderAnalysis.People) > 0 {
+		if genderAnalysis.People[0].GenderGuess == "Female" {
+			gender := models.Gender("Female")
+			return &gender, nil
 		}
-
-		if len(genderAnalysis.People) > 0 {
-			if genderAnalysis.People[0].GenderGuess == "Female" {
-				person.Gender = "Female"
-			}
-			if genderAnalysis.People[0].GenderGuess == "Male" {
-				person.Gender = "Male"
-			}
+		if genderAnalysis.People[0].GenderGuess == "Male" {
+			gender := models.Gender("Male")
+			return &gender, nil
 		}
 	}
 
-	for _, person := range contentAnalysis.Bylines {
-		genderAnalysis, err := services.GetGenderAnalysis(person.Name)
+	return nil, nil
+}
+
+func AddGenderToContentAnalysis(contentAnalysis *models.ContentAnalysis) (*models.ContentAnalysis, error) {
+	for _, person := range contentAnalysis.People {
+		gender, err := GetGenderAnalysisForName(*person.Text)
+		if err != nil {
+			return nil, errors.Wrap(err, "Error adding gender analysis for person "+*person.Text)
+		}
+		person.Gender = *gender
+	}
+
+	for _, byline := range contentAnalysis.Bylines {
+		gender, err := GetGenderAnalysisForName(byline.Name)
 
 		if err != nil {
-			return nil, errors.Wrap(err, "Error getting gender analysis for byline "+person.Name)
+			return nil, errors.Wrap(err, "Error getting gender analysis for byline "+byline.Name)
 		}
-
-		if len(genderAnalysis.People) > 0 {
-			if genderAnalysis.People[0].GenderGuess == "Female" {
-				person.Gender = "Female"
-			}
-			if genderAnalysis.People[0].GenderGuess == "Male" {
-				person.Gender = "Male"
-			}
-		}
+		byline.Gender = *gender
 	}
 
 	return contentAnalysis, nil
@@ -129,16 +133,14 @@ func StoreArticleAnalysis(dbs *sql.DB, p services.JobParameters, entity *models.
 	return nil
 }
 
-func StorePersonGender(dbs *sql.DB, p services.JobParameters, entity *models.Person) error {
-	if *entity.Type == "PERSON" {
-		sqlStatement := "INSERT INTO names (name, gender) VALUES ($1, $2) ON conflict (name) do update set gender = $2"
-		_, err := dbs.Exec(sqlStatement, entity.Text, entity.Gender)
-		if err != nil {
-			return errors.Wrap(err, "Could not store name in article db")
-		}
-		return nil
+func StorePersonGender(dbs *sql.DB, p services.JobParameters, name string, gender models.Gender) error {
+	sqlStatement := "INSERT INTO names (name, gender) VALUES ($1, $2) ON conflict (name) do update set gender = $2"
+	_, err := dbs.Exec(sqlStatement, name, gender)
+	if err != nil {
+		return errors.Wrap(err, "Could not store name in article db")
 	}
 	return nil
+
 }
 
 func StoreAllContentAnalysis(dbs *sql.DB, p services.JobParameters, contentAnalysisSlice []*models.ContentAnalysis) error {
@@ -149,6 +151,14 @@ func StoreAllContentAnalysis(dbs *sql.DB, p services.JobParameters, contentAnaly
 				return errors.Wrap(err, "Could not store article in article db")
 			}
 		}
+
+		for _, byline := range element.Bylines {
+			err := StorePersonGender(dbs, p, byline.Name, byline.Gender)
+			if err != nil {
+				return errors.Wrap(err, "Could not store byline gender")
+			}
+		}
+
 	}
 
 	return nil
@@ -172,8 +182,6 @@ func GetDbAndParameters(query string) (*sql.DB, *services.JobParameters, error) 
 
 	}
 
-	defer db.Close()
-
 	return db, &p, nil
 
 }
@@ -183,11 +191,20 @@ func RedoGenderAnalysis(query string) error {
 
 	if err != nil {
 		return errors.Wrap(err, "Couldn't get db and job parameters")
+
 	}
 
+	defer db.Close()
+
 	contentSlice, err := services.GetArticleFields(db, *p)
+
+	println("Content slice size:", len(contentSlice))
+
+	if err != nil {
+		fmt.Println(err, "Failed to get articles")
+	}
+
 	for _, element := range contentSlice {
-		println("hjeol")
 		entitiesFromPostgres, err := services.GetEntitiesFromPostgres(element.Url)
 
 		if err != nil {
@@ -195,11 +212,38 @@ func RedoGenderAnalysis(query string) error {
 		}
 
 		for _, entity := range entitiesFromPostgres {
-			storeErr := StorePersonGender(db, *p, &entity)
-			if storeErr != nil {
-				return errors.Wrap(storeErr, "Error storing content analysis")
+			if *entity.Type == "PERSON" {
+				gender, err := GetGenderAnalysisForName(*entity.Text)
+
+				if err != nil {
+					return errors.Wrap(err, "Error getting gender analysis for "+*entity.Text)
+				}
+				if gender != nil {
+					storeErr := StorePersonGender(db, *p, *entity.Text, *gender)
+					if storeErr != nil {
+						return errors.Wrap(storeErr, "Error storing content analysis")
+					}
+				}
 			}
 		}
+
+		bylines, err := services.GetBylinesFromPostgres(element.Url)
+		for _, byline := range bylines {
+			println(byline.Name)
+			gender, err := GetGenderAnalysisForName(byline.Name)
+
+			if err != nil {
+				return errors.Wrap(err, "Error getting gender analysis for "+byline.Name)
+			}
+
+			if gender != nil {
+				storeErr := StorePersonGender(db, *p, byline.Name, *gender)
+				if storeErr != nil {
+					return errors.Wrap(storeErr, "Error storing content analysis")
+				}
+			}
+		}
+
 	}
 	return nil
 }
@@ -210,7 +254,6 @@ func GetContentAnalysis(query string) ([]*models.ContentAnalysis, error) {
 
 	if err != nil {
 		return nil, errors.Wrap(err, "Couldn't get db and job parameters")
-
 	}
 
 	contentSlice, err := services.GetArticleFields(db, *p)
