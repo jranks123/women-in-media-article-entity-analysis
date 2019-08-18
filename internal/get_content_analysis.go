@@ -1,13 +1,16 @@
 package internal
 
 import (
+	"bufio"
 	"database/sql"
 	"fmt"
 	"github.com/aws/aws-sdk-go/service/comprehend"
 	"github.com/pkg/errors"
+	"os"
 	"strings"
 	"women-in-media-article-entity-analysis/internal/models"
 	"women-in-media-article-entity-analysis/internal/services"
+	"women-in-media-article-entity-analysis/internal/utils"
 )
 
 func ConstructContentAnalysis(content models.Content, entities []*comprehend.Entity, cacheHit bool) *models.ContentAnalysis {
@@ -135,6 +138,8 @@ func StoreArticleAnalysis(dbs *sql.DB, p services.JobParameters, entity *models.
 
 func StorePersonGender(dbs *sql.DB, p services.JobParameters, name string, gender models.Gender) error {
 	sqlStatement := "INSERT INTO names (name, gender) VALUES ($1, $2) ON conflict (name) do update set gender = $2"
+
+	println("About to do " + name + " with gender " + string(gender))
 	_, err := dbs.Exec(sqlStatement, name, gender)
 	if err != nil {
 		return errors.Wrap(err, "Could not store name in article db")
@@ -186,7 +191,40 @@ func GetDbAndParameters(query string) (*sql.DB, *services.JobParameters, error) 
 
 }
 
-func RedoGenderAnalysis(query string) error {
+func MapGenderFromInputToGender(genderFromInput string) *models.Gender {
+	var gender models.Gender
+	if genderFromInput == "m" {
+		gender = models.Gender("Male")
+	} else if genderFromInput == "f" {
+		gender = models.Gender("Female")
+	}
+	return &gender
+}
+
+func GetGenderFromUserInput(name string) *models.Gender {
+	//reading a string
+	reader := bufio.NewReader(os.Stdin)
+	var genderFromInput string
+	var inputIsValid = false
+	for inputIsValid == false {
+		fmt.Println(" Enter gender for:")
+		fmt.Println(name + " (m/f/u)")
+		genderFromInput, _ = reader.ReadString('\n')
+		genderFromInput = strings.TrimSpace(genderFromInput)
+
+		if genderFromInput == "m" || genderFromInput == "f" || genderFromInput == "u" {
+			inputIsValid = true
+		} else {
+			fmt.Println("Please enter f for Female, m for Male, u for Unknown")
+		}
+	}
+
+	gender := MapGenderFromInputToGender(genderFromInput)
+	return gender
+
+}
+
+func RedoGenderAnalysis(query string, maunal bool) error {
 	db, p, err := GetDbAndParameters(query)
 
 	if err != nil {
@@ -213,11 +251,17 @@ func RedoGenderAnalysis(query string) error {
 
 		for _, entity := range entitiesFromPostgres {
 			if *entity.Type == "PERSON" {
-				gender, err := GetGenderAnalysisForName(*entity.Text)
 
+				var gender *models.Gender
+				gender, err = GetGenderAnalysisForName(*entity.Text)
 				if err != nil {
 					return errors.Wrap(err, "Error getting gender analysis for "+*entity.Text)
 				}
+
+				if gender == nil && maunal && utils.WordCount(*entity.Text) > 1 {
+					gender = GetGenderFromUserInput(*entity.Text)
+				}
+
 				if gender != nil {
 					storeErr := StorePersonGender(db, *p, *entity.Text, *gender)
 					if storeErr != nil {

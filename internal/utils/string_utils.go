@@ -1,6 +1,9 @@
 package utils
 
-import "bytes"
+import (
+	"bytes"
+	"regexp"
+)
 
 func SplitSubN(s string, n int) []string {
 	sub := ""
@@ -19,4 +22,13 @@ func SplitSubN(s string, n int) []string {
 	}
 
 	return subs
+}
+
+func WordCount(value string) int {
+	// Match non-space character sequences.
+	re := regexp.MustCompile(`[\S]+`)
+
+	// Find all matches and return count.
+	results := re.FindAllString(value, -1)
+	return len(results)
 }

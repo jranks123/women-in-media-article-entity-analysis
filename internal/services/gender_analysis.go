@@ -14,7 +14,7 @@ func GetGenderAnalysis(name string) (*models.GenderAnalysis, error) {
 
 	jsonValue, _ := json.Marshal(values)
 
-	resp, err := http.Post("https://wr0ih1jbs3.execute-api.eu-west-1.amazonaws.com/PROD/getEntities", "application/json", bytes.NewBuffer(jsonValue))
+	resp, err := http.Post("https://cat02lbi4d.execute-api.eu-west-1.amazonaws.com/PROD/getGenderAnalysis", "application/json", bytes.NewBuffer(jsonValue))
 	defer resp.Body.Close()
 
 	if err != nil {
