@@ -37,7 +37,7 @@ func TestGetArticleFields(t *testing.T) {
 }
 
 func TestCheckIfArticleHasEntities(t *testing.T) {
-	res, err := CheckIfArticleHasEntities("https://phescreening.blog.gov.uk/2019/05/21/make-sure-your-leaflets-do-not-get-lost-in-the-post/")
+	res, err := GetEntitiesFromPostgres("https://phescreening.blog.gov.uk/2019/05/21/make-sure-your-leaflets-do-not-get-lost-in-the-post/")
 	if err != nil {
 		t.Error(err)
 	} else {

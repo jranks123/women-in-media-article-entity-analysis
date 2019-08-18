@@ -41,6 +41,20 @@ func (i *QueryResult) Person() (models.Person, error) {
 	return models.Person{Entity: entity, Gender: models.Gender(gender)}, nil
 }
 
+func (i *QueryResult) Byline() (models.Byline, error) {
+
+	var (
+		name string
+	)
+
+	err := i.rows.Scan(&name)
+	if err != nil {
+		fmt.Println("Trouble", err)
+	}
+
+	return models.Byline{Name: name, Gender: models.Gender("")}, nil
+}
+
 func (i *QueryResult) Article() (models.Content, error) {
 
 	var (
@@ -50,7 +64,7 @@ func (i *QueryResult) Article() (models.Content, error) {
 		canonical_url string
 		headline      string
 		name          sql.NullString
-		section       string
+		/**/ section string
 	)
 
 	err := i.rows.Scan(&id, &published, &content, &canonical_url, &headline, &name, &section)
@@ -89,12 +103,31 @@ func GetPeople(db *sql.DB, query string) ([]models.Person, error) {
 
 	for people.Next() {
 
-		article, err := people.Person()
+		person, err := people.Person()
 		if err == nil {
-			peopleArray = append(peopleArray, article)
+			peopleArray = append(peopleArray, person)
 		}
 	}
 	return peopleArray, nil
+
+}
+
+func GetBylines(db *sql.DB, query string) ([]models.Byline, error) {
+	bylines, err := queryDb(db, query)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to run query")
+	}
+
+	var bylinesArray []models.Byline
+
+	for bylines.Next() {
+
+		person, err := bylines.Byline()
+		if err == nil {
+			bylinesArray = append(bylinesArray, person)
+		}
+	}
+	return bylinesArray, nil
 
 }
 
@@ -108,7 +141,6 @@ func GetArticles(db *sql.DB, query string) ([]models.Content, error) {
 	var contentArrray []models.Content
 
 	for articles.Next() {
-
 		article, err := articles.Article()
 		if err == nil {
 			contentArrray = append(contentArrray, article)

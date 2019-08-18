@@ -4,6 +4,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/comprehend"
 	"github.com/pkg/errors"
 	"women-in-media-article-entity-analysis/internal/models"
+	"women-in-media-article-entity-analysis/internal/utils"
 )
 
 func GetComprehendClient(profile string) (*comprehend.Comprehend, error) {
@@ -35,17 +36,21 @@ func GetEntitiesFromBodyText(bodyText string) ([]*comprehend.Entity, error) {
 
 func GetEntitiesForArticle(article models.Content) ([]*comprehend.Entity, error) {
 
-	var bodyText = article.Fields.BodyText
+	var bodyTextArray = utils.SplitSubN(article.Fields.BodyText, 3000)
+
+	var allEntities []*comprehend.Entity
 
 	// hack to stop it failing on long articles
-	if len(bodyText) > 4999 {
-		bodyText = article.Fields.BodyText[0:4999]
-	}
-	entities, err := GetEntitiesFromBodyText(bodyText)
+	for _, bodyTextSegment := range bodyTextArray {
+		entities, err := GetEntitiesFromBodyText(bodyTextSegment)
+		if err != nil {
+			return nil, errors.Wrap(err, "Error retrieving entities from body text")
+		}
 
-	if err != nil {
-		return nil, errors.Wrap(err, "Error retrieving entities from body text")
+		for _, entity := range entities {
+			allEntities = append(allEntities, entity)
+		}
 	}
 
-	return entities, nil
+	return allEntities, nil
 }

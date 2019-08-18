@@ -71,7 +71,7 @@ func GetArticleFields(db *sql.DB, p JobParameters) ([]models.Content, error) {
 	return articles, nil
 }
 
-func CheckIfArticleHasEntities(url string) (bool, error) {
+func GetEntitiesFromPostgres(url string) ([]models.Person, error) {
 
 	p := JobParameters{
 		Db: DbParameters{
@@ -86,18 +86,44 @@ func CheckIfArticleHasEntities(url string) (bool, error) {
 
 	db, err := ConnectToPostgres(p.Db)
 	if err != nil {
-		return false, errors.Wrap(err, "unable to connect to database")
+		return nil, errors.Wrap(err, "unable to connect to database")
 	}
 
 	defer db.Close()
 
-	articles, err := GetPeople(db, p.Query)
+	entities, err := GetPeople(db, p.Query)
+
 	if err != nil {
-		return false, errors.Wrap(err, "unable to get contributions")
+		return nil, errors.Wrap(err, "Error getting people from Postgres")
 	}
 
-	if articles != nil {
-		return true, nil
+	return entities, nil
+}
+
+func GetBylinesFromPostgres(url string) ([]models.Byline, error) {
+	p := JobParameters{
+		Db: DbParameters{
+			DbName:   "public",
+			Host:     "article-data.ckelnxbp6kie.us-east-2.rds.amazonaws.com ",
+			Port:     5432,
+			User:     "article_data_master",
+			Password: "AimangeiL2PhahNah5eXooB9quaiLoo7xi",
+		},
+		Query: fmt.Sprintf("SELECT name FROM article join author_attr ON article.id = author_attr.article_id join author on author_attr.author_id = author.id WHERE canonical_url = '%s' ORDER BY published ASC", url),
 	}
-	return false, nil
+
+	db, err := ConnectToPostgres(p.Db)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to connect to database")
+	}
+
+	defer db.Close()
+
+	entities, err := GetBylines(db, p.Query)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "Error getting people from Postgres")
+	}
+
+	return entities, nil
 }
