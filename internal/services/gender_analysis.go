@@ -10,7 +10,14 @@ import (
 )
 
 func GetGenderAnalysis(name string) (*models.GenderAnalysis, error) {
-	values := map[string]string{"name": name}
+
+	names, namesErr := GetNames()
+
+	if namesErr != nil {
+		return nil, errors.Wrap(namesErr, "Could not get names")
+	}
+
+	values := map[string]interface{}{"name": name, "names": names}
 
 	jsonValue, _ := json.Marshal(values)
 

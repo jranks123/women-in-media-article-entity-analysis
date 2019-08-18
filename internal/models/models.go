@@ -21,6 +21,7 @@ type GenderAnalysis struct {
 		GenderGuess string `json:"genderGuess"`
 		Pronoun     string `json:"pronoun"`
 	} `json:"people"`
+	Names map[string]string `json:"names"`
 }
 type Content struct {
 	WebPublicationDate string        `json:"webPublicationDate"`

@@ -14,7 +14,7 @@ type ArticleQueryParams struct {
 	Section string
 }
 
-func (i *QueryResult) Person() (models.Person, error) {
+func (i *QueryResult) Person() (*models.Person, error) {
 
 	var (
 		beginoffset int64
@@ -22,12 +22,11 @@ func (i *QueryResult) Person() (models.Person, error) {
 		score       float64
 		text        string
 		entityType  string
-		gender      string
 	)
 
-	err := i.rows.Scan(&beginoffset, &endoffset, &score, &text, &entityType, &gender)
+	err := i.rows.Scan(&beginoffset, &endoffset, &score, &text, &entityType)
 	if err != nil {
-		fmt.Println("Trouble", err)
+		return nil, errors.Wrap(err, "could not read drom postgres")
 	}
 
 	var entity = comprehend.Entity{
@@ -38,7 +37,7 @@ func (i *QueryResult) Person() (models.Person, error) {
 		Type:        &entityType,
 	}
 
-	return models.Person{Entity: entity, Gender: models.Gender(gender)}, nil
+	return &models.Person{Entity: entity}, nil
 }
 
 func (i *QueryResult) Byline() (models.Byline, error) {
@@ -104,8 +103,9 @@ func GetPeople(db *sql.DB, query string) ([]models.Person, error) {
 	for people.Next() {
 
 		person, err := people.Person()
-		if err == nil {
-			peopleArray = append(peopleArray, person)
+
+		if err == nil && person != nil {
+			peopleArray = append(peopleArray, *person)
 		}
 	}
 	return peopleArray, nil

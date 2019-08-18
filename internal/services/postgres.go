@@ -81,7 +81,7 @@ func GetEntitiesFromPostgres(url string) ([]models.Person, error) {
 			User:     "article_data_master",
 			Password: "AimangeiL2PhahNah5eXooB9quaiLoo7xi",
 		},
-		Query: fmt.Sprintf("SELECT beginoffset, endoffset, score, text, type as entityType, gender FROM article join article_entities ON article.id = article_entities.article_id WHERE canonical_url = '%s' ORDER BY published ASC", url),
+		Query: fmt.Sprintf("SELECT beginoffset, endoffset, score, text, type as entityType FROM article join article_entities ON article.id = article_entities.article_id WHERE canonical_url = '%s' ORDER BY published ASC", url),
 	}
 
 	db, err := ConnectToPostgres(p.Db)

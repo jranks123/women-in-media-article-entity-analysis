@@ -111,7 +111,9 @@ func AddGenderToContentAnalysis(contentAnalysis *models.ContentAnalysis) (*model
 		if err != nil {
 			return nil, errors.Wrap(err, "Error adding gender analysis for person "+*person.Text)
 		}
-		person.Gender = *gender
+		if gender != nil {
+			person.Gender = *gender
+		}
 	}
 
 	for _, byline := range contentAnalysis.Bylines {
@@ -120,7 +122,9 @@ func AddGenderToContentAnalysis(contentAnalysis *models.ContentAnalysis) (*model
 		if err != nil {
 			return nil, errors.Wrap(err, "Error getting gender analysis for byline "+byline.Name)
 		}
-		byline.Gender = *gender
+		if gender != nil {
+			byline.Gender = *gender
+		}
 	}
 
 	return contentAnalysis, nil
@@ -128,8 +132,8 @@ func AddGenderToContentAnalysis(contentAnalysis *models.ContentAnalysis) (*model
 }
 
 func StoreArticleAnalysis(dbs *sql.DB, p services.JobParameters, entity *models.Person, element *models.ContentAnalysis) error {
-	sqlStatement := "INSERT INTO article_entities (article_id, beginoffset, endoffset, score, text, type) VALUES ($1, $2, $3, $4, $5, $6,)"
-	_, err := dbs.Exec(sqlStatement, element.Id, entity.BeginOffset, entity.EndOffset, entity.Score, entity.Text, entity.Type, entity.Gender)
+	sqlStatement := "INSERT INTO article_entities (article_id, beginoffset, endoffset, score, text, type) VALUES ($1, $2, $3, $4, $5, $6)"
+	_, err := dbs.Exec(sqlStatement, element.Id, entity.BeginOffset, entity.EndOffset, entity.Score, entity.Text, entity.Type)
 	if err != nil {
 		return errors.Wrap(err, "Could not store article in article db")
 	}
@@ -197,6 +201,8 @@ func MapGenderFromInputToGender(genderFromInput string) *models.Gender {
 		gender = models.Gender("Male")
 	} else if genderFromInput == "f" {
 		gender = models.Gender("Female")
+	} else if genderFromInput == "n" {
+		gender = models.Gender("NotName")
 	}
 	return &gender
 }
@@ -206,13 +212,14 @@ func GetGenderFromUserInput(name string) *models.Gender {
 	reader := bufio.NewReader(os.Stdin)
 	var genderFromInput string
 	var inputIsValid = false
+	fmt.Println("Please enter f for Female, m for Male, n for Not a Name, u for Unknown")
 	for inputIsValid == false {
 		fmt.Println(" Enter gender for:")
 		fmt.Println(name + " (m/f/u)")
 		genderFromInput, _ = reader.ReadString('\n')
 		genderFromInput = strings.TrimSpace(genderFromInput)
 
-		if genderFromInput == "m" || genderFromInput == "f" || genderFromInput == "u" {
+		if genderFromInput == "m" || genderFromInput == "f" || genderFromInput == "u" || genderFromInput == "n" {
 			inputIsValid = true
 		} else {
 			fmt.Println("Please enter f for Female, m for Male, u for Unknown")
@@ -243,6 +250,9 @@ func RedoGenderAnalysis(query string, maunal bool) error {
 	}
 
 	for _, element := range contentSlice {
+
+		corrections := make(map[string]string)
+
 		entitiesFromPostgres, err := services.GetEntitiesFromPostgres(element.Url)
 
 		if err != nil {
@@ -260,6 +270,7 @@ func RedoGenderAnalysis(query string, maunal bool) error {
 
 				if gender == nil && maunal && utils.WordCount(*entity.Text) > 1 {
 					gender = GetGenderFromUserInput(*entity.Text)
+					corrections[*entity.Text] = string(*gender)
 				}
 
 				if gender != nil {
@@ -280,12 +291,22 @@ func RedoGenderAnalysis(query string, maunal bool) error {
 				return errors.Wrap(err, "Error getting gender analysis for "+byline.Name)
 			}
 
+			if gender == nil && maunal && utils.WordCount(byline.Name) > 1 {
+				gender = GetGenderFromUserInput(byline.Name)
+				corrections[byline.Name] = string(*gender)
+			}
+
 			if gender != nil {
 				storeErr := StorePersonGender(db, *p, byline.Name, *gender)
 				if storeErr != nil {
 					return errors.Wrap(storeErr, "Error storing content analysis")
 				}
 			}
+		}
+
+		correctionsErr := services.StoreCorrections(corrections)
+		if correctionsErr != nil {
+			return errors.Wrap(correctionsErr, "Could not store corrections")
 		}
 
 	}

@@ -13,5 +13,9 @@ func TestGetGenderAnalysis(t *testing.T) {
 		for _, people := range res.People {
 			fmt.Println(people)
 		}
+		for key, value := range res.Names {
+			fmt.Println(key)
+			fmt.Println(value)
+		}
 	}
 }
