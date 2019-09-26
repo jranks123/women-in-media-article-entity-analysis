@@ -8,44 +8,13 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/pkg/errors"
-	"women-in-media-article-entity-analysis/internal/models"
 )
 
-const NamesBucket = "gu-bechdel-names"
-const BucketName = "gu-article-content-analysis" //TODO - config?
-
-// Returns error if object is not in s3
-func GetContentAnalysisFromS3(path string) (*models.ContentAnalysis, error) {
-	var contentAnalysis *models.ContentAnalysis = nil
-
-	sess, err := GetAwsSession("developerPlayground", "eu-west-1")
-	if err != nil {
-		return contentAnalysis, errors.Wrap(err, "failed to create aws session")
-	}
-
-	downloader := s3manager.NewDownloader(sess)
-
-	buffer := aws.NewWriteAtBuffer([]byte{})
-
-	_, err = downloader.Download(buffer, &s3.GetObjectInput{
-		Bucket: aws.String(BucketName),
-		Key:    aws.String(path),
-	})
-	if err != nil {
-		return contentAnalysis, errors.Wrap(err, "failed to download file")
-	}
-
-	unmarshallError := json.Unmarshal(buffer.Bytes(), &contentAnalysis)
-	if unmarshallError != nil {
-		return contentAnalysis, errors.Wrap(err, "failed to unmarshall s3 data")
-	}
-
-	return contentAnalysis, nil
-}
+const NamesBucket = "bechdel-names"
 
 func GetNames() (map[string]string, error) {
 
-	sess, err := GetAwsSession("developerPlayground", "eu-west-1")
+	sess, err := GetAwsSession("bechdel", "eu-west-1")
 
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to marshall data for S3 upload")
@@ -89,7 +58,7 @@ func MapGenderToGenderName(genderFromInput string) *string {
 }
 
 func StoreCorrections(corrections map[string]string) error {
-	sess, err := GetAwsSession("developerPlayground", "eu-west-1")
+	sess, err := GetAwsSession("bechdel", "eu-west-1")
 
 	if err != nil {
 		return errors.Wrap(err, "failed to marshall data for S3 upload")
@@ -120,29 +89,6 @@ func StoreCorrections(corrections map[string]string) error {
 
 	if err == nil {
 		fmt.Println("names upload successful")
-	}
-
-	return err
-}
-
-func StoreContentAnalysisInS3(contentAnalysis *models.ContentAnalysis) error {
-	sess, err := GetAwsSession("developerPlayground", "eu-west-1")
-
-	uploader := s3manager.NewUploader(sess)
-
-	marshalled, err := json.Marshal(contentAnalysis)
-	if err != nil {
-		return errors.Wrap(err, "failed to marshall data for S3 upload")
-	}
-
-	_, err = uploader.Upload(&s3manager.UploadInput{
-		Bucket: aws.String(BucketName),
-		Key:    aws.String(contentAnalysis.Path),
-		Body:   bytes.NewReader(marshalled),
-	})
-
-	if err == nil {
-		fmt.Println("upload successful")
 	}
 
 	return err

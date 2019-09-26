@@ -260,8 +260,7 @@ func RedoGenderAnalysis(query string, maunal bool) error {
 		}
 
 		for _, entity := range entitiesFromPostgres {
-			if *entity.Type == "PERSON" {
-
+			if *entity.Type == "PERSON" && *entity.Score > 0.9 {
 				var gender *models.Gender
 				gender, err = GetGenderAnalysisForName(*entity.Text)
 				if err != nil {

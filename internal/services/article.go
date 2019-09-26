@@ -128,7 +128,6 @@ func GetBylines(db *sql.DB, query string) ([]models.Byline, error) {
 		}
 	}
 	return bylinesArray, nil
-
 }
 
 func GetArticles(db *sql.DB, query string) ([]models.Content, error) {
