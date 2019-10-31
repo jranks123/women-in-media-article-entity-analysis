@@ -259,26 +259,9 @@ func RedoGenderAnalysis(query string, maunal bool) error {
 			return errors.Wrap(err, "error checking if article has entities")
 		}
 
-		for _, entity := range entitiesFromPostgres {
-			if *entity.Type == "PERSON" && *entity.Score > 0.9 {
-				var gender *models.Gender
-				gender, err = GetGenderAnalysisForName(*entity.Text)
-				if err != nil {
-					return errors.Wrap(err, "Error getting gender analysis for "+*entity.Text)
-				}
-
-				if gender == nil && maunal && utils.WordCount(*entity.Text) > 1 {
-					gender = GetGenderFromUserInput(*entity.Text)
-					corrections[*entity.Text] = string(*gender)
-				}
-
-				if gender != nil {
-					storeErr := StorePersonGender(db, *p, *entity.Text, *gender)
-					if storeErr != nil {
-						return errors.Wrap(storeErr, "Error storing content analysis")
-					}
-				}
-			}
+		error := ComputeAndStoreGenderOfEntities(entitiesFromPostgres, maunal, corrections, db, p)
+		if error != nil {
+			return error
 		}
 
 		bylines, err := services.GetBylinesFromPostgres(element.Url)
@@ -308,6 +291,33 @@ func RedoGenderAnalysis(query string, maunal bool) error {
 			return errors.Wrap(correctionsErr, "Could not store corrections")
 		}
 
+	}
+	return nil
+}
+
+func ComputeAndStoreGenderOfEntities(entities []models.Person, maunal bool, corrections map[string]string, db *sql.DB, p *services.JobParameters) error {
+	corrections["a"] = "hello"
+
+	for _, entity := range entities {
+		if *entity.Type == "PERSON" && *entity.Score > 0.9 {
+			var gender *models.Gender
+			gender, err := GetGenderAnalysisForName(*entity.Text)
+			if err != nil {
+				return errors.Wrap(err, "Error getting gender analysis for "+*entity.Text)
+			}
+
+			if gender == nil && maunal && utils.WordCount(*entity.Text) > 1 {
+				gender = GetGenderFromUserInput(*entity.Text)
+				corrections[*entity.Text] = string(*gender)
+			}
+
+			if gender != nil {
+				storeErr := StorePersonGender(db, *p, *entity.Text, *gender)
+				if storeErr != nil {
+					return errors.Wrap(storeErr, "Error storing content analysis")
+				}
+			}
+		}
 	}
 	return nil
 }

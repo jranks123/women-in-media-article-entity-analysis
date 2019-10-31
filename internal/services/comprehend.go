@@ -36,13 +36,14 @@ func GetEntitiesFromBodyText(bodyText string) ([]*comprehend.Entity, error) {
 
 func GetEntitiesForArticle(article models.Content) ([]*comprehend.Entity, error) {
 
-	var bodyTextArray = utils.SplitSubN(article.Fields.BodyText, 3000)
+	var bodyTextArray = utils.SplitSubN(article.Fields.BodyText, 20000)
 
 	var allEntities []*comprehend.Entity
 
 	// hack to stop it failing on long articles
 	for _, bodyTextSegment := range bodyTextArray {
 		entities, err := GetEntitiesFromBodyText(bodyTextSegment)
+
 		if err != nil {
 			return nil, errors.Wrap(err, "Error retrieving entities from body text")
 		}

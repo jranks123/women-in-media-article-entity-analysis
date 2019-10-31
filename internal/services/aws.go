@@ -8,6 +8,7 @@ import (
 )
 
 func GetAwsSession(profile string, region string) (*session.Session, error) {
+
 	sess, err := session.NewSession(&aws.Config{
 		Region: aws.String(region),
 	})
