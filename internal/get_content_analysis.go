@@ -261,7 +261,7 @@ func RedoGenderAnalysis(query string, maunal bool) error {
 
 		error := ComputeAndStoreGenderOfEntities(entitiesFromPostgres, maunal, corrections, db, p)
 		if error != nil {
-			return error
+			return errors.Wrap(error, "error in compute and store gender of entities")
 		}
 
 		bylines, err := services.GetBylinesFromPostgres(element.Url)
