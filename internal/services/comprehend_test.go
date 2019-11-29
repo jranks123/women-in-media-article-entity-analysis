@@ -30,8 +30,21 @@ func TestGetEntitiesForArticle(t *testing.T) {
 	}
 }
 
+func TestGetNextWordAfterEntities(t *testing.T) {
+	copy := "hello Jonny happy Ben sad then my mate Benji ran"
+	res, err := GetEntitiesFromBodyText(copy)
+	if err != nil {
+		t.Error(err)
+	} else {
+		nextWords := GetNextWordAfterEntities(res, copy)
+		for _, entityWithNextWord := range nextWords {
+			fmt.Println(entityWithNextWord.NextWord)
+		}
+	}
+}
+
 func TestGetEntitiesFromBodyText(t *testing.T) {
-	res, err := GetEntitiesFromBodyText("hello Jonny")
+	res, err := GetEntitiesFromBodyText("hello Jonny happy")
 	if err != nil {
 		t.Error(err)
 	} else {

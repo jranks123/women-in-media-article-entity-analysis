@@ -48,6 +48,11 @@ type Person struct {
 	Gender Gender
 }
 
+type EntityWithNextWord struct {
+	Entity *comprehend.Entity;
+	NextWord string
+}
+
 type ContentAnalysis struct {
 	Path               string               `json:"path"`
 	Headline           string               `json:"headline"`
