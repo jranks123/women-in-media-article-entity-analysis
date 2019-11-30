@@ -1,0 +1,203 @@
+{
+  "friendList": [
+    {
+      "id": 0,
+      "name": "Jessie",
+      "email": "",
+      "knows": ["Jessie", "Jake G", "Jonny", "Kitty", "Oscar", "Tom", "Oriel", "Max", "Doug", "Esther", "Freddie", "Hannah", "Giorgi", "Xave", "Jake M", "Jen", "Hen", "Josh", "Misha", "Rafa", "Juby", "George", "Oli", "Micha", "Joe PS", "Martha", "Amy", "Dylan"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "Jake G",
+      "email": "",
+      "knows": ["Jessie", "Jake G", "Jonny", "Kitty", "Oscar", "Tom", "Oriel", "Max", "Doug", "Esther", "Freddie", "Hannah", "Giorgi", "Xave", "Jake M", "Jen", "Hen", "Josh", "Misha", "Rafa", "Juby", "Oli", "Micha", "Joe PS", "Martha", "Amy", "Dylan"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Jonny",
+      "email": "",
+      "knows": ["Jessie", "Jake G", "Jonny", "Kitty", "Oscar", "Tom", "Oriel", "Max", "Doug", "Esther", "Freddie", "Hannah", "Giorgi", "Xave", "Jake M", "Jen", "Hen", "Josh", "Misha", "Rafa", "Juby", "George", "Oli", "Micha", "Joe PS", "Martha", "Amy", "Dylan"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Kitty",
+      "email": "",
+      "knows": ["Jessie", "Jake G", "Jonny", "Kitty", "Oscar", "Tom", "Oriel", "Max", "Doug", "Esther", "Freddie", "Hannah", "Giorgi", "Xave", "Jake M", "Jen", "Hen", "Josh", "Misha", "Rafa", "Juby", "George", "Oli", "Micha", "Joe PS", "Martha", "Amy", "Dylan"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Oscar",
+      "email": "",
+      "knows": ["Jessie", "Jake G", "Jonny", "Kitty", "Oscar", "Tom", "Oriel", "Max", "Doug", "Esther", "Freddie", "Hannah", "Giorgi", "Xave", "Jake M", "Jen", "Hen", "Josh", "Misha", "Rafa", "Juby", "George", "Oli", "Micha", "Joe PS", "Martha", "Amy", "Dylan"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Tom",
+      "email": "",
+      "knows": ["Jessie", "Jake G", "Jonny", "Kitty", "Oscar", "Tom", "Oriel", "Max", "Doug", "Esther", "Freddie", "Hannah", "Giorgi", "Xave", "Jake M", "Jen", "Hen", "Josh", "Misha", "Rafa", "Juby", "George", "Oli", "Micha", "Joe PS", "Martha", "Amy", "Dylan"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Oriel",
+      "email": "",
+      "knows": ["Jessie", "Jake G", "Jonny", "Kitty", "Oscar", "Tom", "Oriel", "Max", "Doug", "Esther", "Freddie", "Hannah", "Giorgi", "Xave", "Jake M", "Jen", "Hen", "Josh", "Misha", "Rafa", "Juby", "Oli",  "Joe PS", "Dylan"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "Max",
+      "email": "",
+      "knows": ["Jessie", "Jake G", "Jonny", "Kitty", "Oscar", "Tom", "Oriel", "Max", "Doug", "Esther", "Freddie", "Hannah", "Giorgi", "Xave", "Jake M", "Jen", "Hen", "Josh", "Misha", "Rafa", "Juby", "George", "Oli", "Micha", "Joe PS", "Dylan"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "Doug",
+      "email": "",
+      "knows": ["Jessie", "Jake G", "Jonny", "Kitty", "Oscar", "Tom", "Oriel", "Max", "Doug", "Esther", "Freddie", "Hannah", "Giorgi", "Xave", "Jake M", "Josh", "Misha", "Rafa", "Juby", "Dylan"
+      ]
+    },
+    {
+      "id": 9,
+      "name": "Esther",
+      "email": "",
+      "knows": ["Jessie", "Jake G", "Jonny", "Kitty", "Oscar", "Tom", "Oriel", "Max", "Doug", "Esther", "Freddie", "Hannah", "Giorgi", "Xave", "Jake M", "Jen", "Hen", "Josh", "Misha", "Rafa", "Juby", "George", "Micha", "Joe PS"
+      ]
+    },
+    {
+      "id": 10,
+      "name": "Freddie",
+      "email": "",
+      "knows": ["Jessie", "Jake G", "Jonny", "Kitty", "Oscar", "Tom", "Oriel", "Max", "Doug", "Esther", "Freddie", "Hannah", "Giorgi", "Xave", "Jake M", "Jen", "Hen", "Josh", "Misha", "Micha", "Rafa", "Juby", "George", "Oli",  "Joe PS"
+      ]
+    },
+    {
+      "id": 11,
+      "name": "Hannah",
+      "email": "",
+      "knows": ["Jessie", "Jake G", "Jonny", "Kitty", "Oscar", "Tom", "Oriel", "Max", "Doug", "Esther", "Freddie", "Hannah", "Giorgi", "Xave", "Jake M", "Jen", "Hen", "Josh", "Misha", "Rafa", "Juby", "George", "Oli", "Micha", "Joe PS"
+      ]
+    },
+    {
+      "id": 12,
+      "name": "Giorgi",
+      "email": "",
+      "knows": ["Jessie", "Jake G", "Jonny", "Kitty", "Oscar", "Tom", "Oriel", "Max", "Doug", "Esther", "Freddie", "Hannah", "Giorgi", "Jake M", "Jen", "Hen", "Josh", "Misha", "Rafa", "Juby", "George", "Micha", "Joe PS", "Dylan"
+      ]
+    },
+    {
+      "id": 13,
+      "name": "Xave",
+      "email": "",
+      "knows": ["Jessie", "Jake G", "Jonny", "Kitty", "Oscar", "Tom", "Oriel", "Max", "Doug", "Esther", "Freddie", "Hannah", "Giorgi", "Jake M", "Jen", "Hen", "Josh", "Misha", "Rafa", "Juby", "George",  "Micha", "Joe PS", "Dylan"
+      ]
+    },
+    {
+      "id": 14,
+      "name": "Jake M",
+      "email": "",
+      "knows": ["Jessie", "Jake G", "Jonny", "Kitty", "Oscar", "Tom", "Oriel", "Max", "Doug", "Esther", "Freddie", "Hannah", "Giorgi", "Xave", "Jake M", "Jen", "Hen", "Josh", "Misha", "Rafa", "Juby", "George", "Oli", "Micha", "Joe PS", "Martha", "Amy", "Dylan"
+      ]
+    },
+    {
+      "id": 15,
+      "name": "Jen",
+      "email": "",
+      "knows": ["Jessie", "Jake G", "Jonny", "Kitty", "Oscar", "Tom", "Oriel", "Max", "Esther", "Freddie", "Hannah", "Giorgi", "Xave", "Jake M", "Jen", "Hen", "Josh", "Misha", "Rafa", "Juby", "George",  "Joe PS"
+      ]
+    },
+    {
+      "id": 16,
+      "name": "Hen",
+      "email": "",
+      "knows": ["Jessie", "Jake G", "Jonny", "Kitty", "Oscar", "Tom", "Oriel", "Max", "Esther", "Freddie", "Hannah", "Giorgi", "Xave", "Jake M", "Jen", "Hen", "Josh", "Misha", "Rafa", "Juby", "George",  "Joe PS"
+      ]
+    },
+    {
+      "id": 17,
+      "name": "Josh",
+      "email": "",
+      "knows": ["Jessie", "Jake G", "Jonny", "Kitty", "Oscar", "Tom", "Oriel", "Max", "Doug", "Esther", "Freddie", "Hannah", "Giorgi", "Xave", "Jake M", "Jen", "Hen", "Josh", "Misha", "Rafa", "Juby", "George", "Martha", "Amy", "Dylan"
+      ]
+    },
+    {
+      "id": 18,
+      "name": "Misha",
+      "email": "",
+      "knows": ["Jessie", "Jake G", "Jonny", "Kitty", "Oscar", "Tom", "Oriel", "Max", "Doug", "Esther", "Freddie", "Hannah", "Giorgi", "Xave", "Jake M", "Jen", "Hen", "Josh", "Misha", "Rafa", "Juby", "George", "Oli", "Micha", "Joe PS", "Martha", "Amy", "Dylan"
+      ]
+    },
+    {
+      "id": 19,
+      "name": "Rafa",
+      "email": "",
+      "knows": ["Jessie", "Jake G", "Jonny", "Kitty", "Oscar", "Tom", "Oriel", "Max", "Doug", "Esther", "Freddie", "Hannah", "Giorgi", "Xave", "Jake M", "Jen", "Hen", "Josh", "Misha", "Rafa", "Juby", "George", "Joe PS"
+      ]
+    },
+    {
+      "id": 20,
+      "name": "Juby",
+      "email": "",
+      "knows": ["Jessie", "Jake G", "Jonny", "Kitty", "Oscar", "Tom", "Oriel", "Max", "Doug", "Esther", "Freddie", "Hannah", "Giorgi", "Xave", "Jake M", "Jen", "Hen", "Josh", "Misha", "Rafa", "Juby", "George", "Joe PS"
+      ]
+    },
+    {
+      "id": 21,
+      "name": "George",
+      "email": "",
+      "knows": ["Jessie", "Jonny", "Kitty", "Oscar", "Tom", "Max", "Esther", "Freddie", "Hannah", "Giorgi", "Xave", "Jake M", "Jen", "Hen", "Josh", "Misha", "Rafa", "Juby", "George", "Joe PS"
+      ]
+    },
+    {
+      "id": 22,
+      "name": "Oli",
+      "email": "",
+      "knows": ["Jessie", "Jake G", "Jonny", "Kitty", "Oscar", "Tom", "Oriel", "Max", "Freddie", "Hannah", "Misha"
+      ]
+    },
+    {
+      "id": 23,
+      "name": "Micha",
+      "email": "",
+      "knows": ["Jessie", "Jake G", "Jonny", "Kitty", "Oscar", "Tom",  "Max",  "Esther", "Freddie", "Hannah", "Giorgi", "Xave", "Jake M", "Misha", "Micha"
+      ]
+    },
+    {
+      "id": 24,
+      "name": "Joe PS",
+      "email": "",
+      "knows": ["Jessie", "Jake G", "Jonny", "Kitty", "Oscar", "Tom", "Oriel", "Max", "Esther", "Freddie", "Hannah", "Giorgi", "Xave", "Jake M", "Jen", "Hen", "Misha", "Rafa", "Juby", "George", "Joe PS"
+      ]
+    },
+    {
+      "id": 25,
+      "name": "Martha",
+      "email": "",
+      "knows": ["Jessie", "Jake G", "Jonny", "Kitty", "Oscar", "Tom", "Josh", "Misha", "Rafa", "Juby", "George", "Oli", "Micha", "Joe PS", "Dylan"
+      ]
+    },
+    {
+      "id": 26,
+      "name": "Amy",
+      "email": "",
+      "knows": ["Jessie", "Jake G", "Jonny", "Kitty", "Oscar", "Tom", "Josh", "Misha", "Rafa", "Juby", "George", "Oli", "Micha", "Joe PS", "Dylan"
+      ]
+    },
+    {
+      "id": 27,
+      "name": "Dylan",
+      "email": "",
+      "knows": ["Jessie", "Jake G", "Jonny", "Kitty", "Oscar", "Tom", "Oriel", "Max", "Doug", "Giorgi", "Xave",  "Josh", "Misha",  "Joe PS", "Martha", "Amy", "Dylan"
+      ]
+    }
+  ]
+}
+
+
+
