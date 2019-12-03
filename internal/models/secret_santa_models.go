@@ -1,19 +1,9 @@
 package models
 
-
-type Friend struct {
-	Id          int
-	Name        string
-	Email 	    string
-	DoesNotKnow []*Friend
-	Knows       []*Friend
-	GivesTo 	*Friend
-}
-
 type FriendList struct {
-	FriendList []FriendV2 `json:"friendList"`
+	FriendList []Friend `json:"friendList"`
 }
-type FriendV2 struct {
+type Friend struct {
 	Id          int  `json:"id"`
 	Name        string `json:"name"`
 	Email 	    string `json:"email"`

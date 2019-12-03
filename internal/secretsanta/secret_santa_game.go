@@ -8,12 +8,12 @@ import (
 )
 
 
-func PickRandomFriend(friends []string, friendsList []models.FriendV2) *models.FriendV2 {
+func PickRandomFriend(friends []string, friendsList []models.Friend) *models.Friend {
 	rand.Seed(time.Now().UnixNano())
 	return getFriend(friends[rand.Intn(len(friends))], friendsList)
 }
 
-func FriendIsAlreadyReceivingGift(friendToCheck string, friendsList []models.FriendV2 ) bool {
+func FriendIsAlreadyReceivingGift(friendToCheck string, friendsList []models.Friend) bool {
 	for _, friend := range friendsList {
 		if friend.GivesTo != nil && *friend.GivesTo == friendToCheck {
 			return true
@@ -22,7 +22,7 @@ func FriendIsAlreadyReceivingGift(friendToCheck string, friendsList []models.Fri
 	return false
 }
 
-func SetGivesToForPersonrReceivingFrom(givingFriend *models.FriendV2, receivingFriend string, friendsList []models.FriendV2 ) []models.FriendV2 {
+func SetGivesToForPersonrReceivingFrom(givingFriend *models.Friend, receivingFriend string, friendsList []models.Friend) []models.Friend {
 	for i := 0; i < len(friendsList); i++ {
 		if friendsList[i].Name == givingFriend.Name {
 			friendsList[i].GivesTo = &receivingFriend
@@ -38,7 +38,7 @@ func SortFriends(friendsList models.FriendList) models.FriendList {
 	return friendsList
 }
 
-func getFriend(friendName string, friendsList []models.FriendV2) *models.FriendV2 {
+func getFriend(friendName string, friendsList []models.Friend) *models.Friend {
 	for _, friend := range friendsList {
 		if friend.Name == friendName {
 			return &friend
