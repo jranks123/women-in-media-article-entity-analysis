@@ -52,7 +52,7 @@ func GetNextWordAfterEntities(entities []*comprehend.Entity, bodyTextSegment str
 
 func GetEntitiesForArticle(article models.Content) ([]*comprehend.Entity, error) {
 
-	var bodyTextArray = utils.SplitSubN(article.Fields.BodyText, 20000)
+	var bodyTextArray = utils.SplitSubN(article.Fields.BodyText, 4000)
 
 	var allEntities []*comprehend.Entity
 
