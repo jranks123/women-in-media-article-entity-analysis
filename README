@@ -1,0 +1,41 @@
+How to run program
+
+
+1) Open command prompt
+2) paste the following command and press enter:  cd C:\Users\w1515247\golang\src\women-in-media-article-entity-analysis\cmd\cli
+3) make sure that the query in main.go returns the articles that you want to analyse
+4) Click "File -> Save all" in Atom
+4) paste the following command and press enter:  go build && cli.exe
+
+
+This will analyse all articles that match the query.
+
+To see the results (for now), these commands will be useful
+
+
+/* see all the entities */
+select * from public.article_entities
+where <inset conditions>
+
+/* see all the entities with their gender */
+SELECT *, n.gender
+from public.article_entities a
+join public.names n
+on a.text = n.name
+where  <inset conditions>
+
+/* see the gender count */
+select n.gender, count(*)
+from public.article_entities a
+join public.names n
+on a.text = n.name
+where  <inset conditions>
+group by 1
+
+/* see the entities without a gender */
+select * from
+public.article_entities a
+join public.names n
+on a.text = n.name
+where  <inset conditions>
+and n.gender = ''
