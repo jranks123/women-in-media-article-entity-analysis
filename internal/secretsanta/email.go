@@ -7,7 +7,7 @@ import (
 
 func SendEmail(body string, emailTo string) {
 	from := "jonnyrankin@googlemail.com"
-	pass := "sotbcttf00"
+	pass := ""
 	to := emailTo
 
 	msg := "From: " + from + "\n" +
