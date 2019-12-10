@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/pkg/errors"
+	"strings"
 )
 
 const NamesBucket = "bechdel-names"
@@ -73,7 +74,8 @@ func StoreCorrections(corrections map[string]string) error {
 	for key, value := range corrections {
 		genderVal := MapGenderToGenderName(value)
 		if genderVal != nil {
-			names[key] = *MapGenderToGenderName(value)
+			keyWithoutDash := strings.Replace(key, "-", "", -1)
+			names[keyWithoutDash] = *MapGenderToGenderName(value)
 		}
 	}
 
