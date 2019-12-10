@@ -44,7 +44,7 @@ type Byline struct {
 }
 
 type Person struct {
-	comprehend.Entity
+	EntityWithNextWord
 	Gender Gender
 }
 

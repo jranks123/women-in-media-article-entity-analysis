@@ -37,7 +37,8 @@ func (i *QueryResult) Person() (*models.Person, error) {
 		Type:        &entityType,
 	}
 
-	return &models.Person{Entity: entity}, nil
+	entityWithNextWord := &models.EntityWithNextWord{Entity: &entity, NextWord: ""}
+	return &models.Person{*entityWithNextWord, "" }, nil
 }
 
 func (i *QueryResult) Byline() (models.Byline, error) {
