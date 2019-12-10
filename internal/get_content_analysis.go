@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"database/sql"
 	"fmt"
-	"github.com/aws/aws-sdk-go/service/comprehend"
 	"github.com/pkg/errors"
 	"os"
 	"strings"
@@ -13,7 +12,7 @@ import (
 	"women-in-media-article-entity-analysis/internal/utils"
 )
 
-func ConstructContentAnalysis(content models.Content, entities []*comprehend.Entity, cacheHit bool) *models.ContentAnalysis {
+func ConstructContentAnalysis(content models.Content, entities [] models.EntityWithNextWord, cacheHit bool) *models.ContentAnalysis {
 	var bylines []*models.Byline = nil
 
 	bylinesArray := strings.Split(strings.Replace(content.Fields.Byline, " and ", ",", -1), ",")
@@ -23,31 +22,31 @@ func ConstructContentAnalysis(content models.Content, entities []*comprehend.Ent
 	}
 
 	var people []*models.Person = nil
-	var locations []*comprehend.Entity = nil
-	var organisations []*comprehend.Entity = nil
-	var creativeWorkTitles []*comprehend.Entity = nil
-	var commercialItems []*comprehend.Entity = nil
-	var events []*comprehend.Entity = nil
+	//var locations []*comprehend.Entity = nil
+	//var organisations []*comprehend.Entity = nil
+	//var creativeWorkTitles []*comprehend.Entity = nil
+	//var commercialItems []*comprehend.Entity = nil
+	//var events []*comprehend.Entity = nil
 
 	for _, entity := range entities {
-		if *entity.Type == "PERSON" {
-			people = append(people, &models.Person{Entity: *entity})
+		if *entity.Entity.Type == "PERSON" {
+			people = append(people, &models.Person{EntityWithNextWord: entity})
 		}
-		if *entity.Type == "LOCATION" {
-			locations = append(locations, entity)
-		}
-		if *entity.Type == "ORGANIZATION" {
-			organisations = append(organisations, entity)
-		}
-		if *entity.Type == "COMMERCIAL_ITEM" {
-			commercialItems = append(commercialItems, entity)
-		}
-		if *entity.Type == "TITLE" {
-			creativeWorkTitles = append(creativeWorkTitles, entity)
-		}
-		if *entity.Type == "EVENT" {
-			events = append(events, entity)
-		}
+		//if *entity.Type == "LOCATION" {
+		//	locations = append(locations, entity)
+		//}
+		//if *entity.Type == "ORGANIZATION" {
+		//	organisations = append(organisations, entity)
+		//}
+		//if *entity.Type == "COMMERCIAL_ITEM" {
+		//	commercialItems = append(commercialItems, entity)
+		//}
+		//if *entity.Type == "TITLE" {
+		//	creativeWorkTitles = append(creativeWorkTitles, entity)
+		//}
+		//if *entity.Type == "EVENT" {
+		//	events = append(events, entity)
+		//}
 
 	}
 
@@ -57,11 +56,11 @@ func ConstructContentAnalysis(content models.Content, entities []*comprehend.Ent
 		BodyText:           content.Fields.BodyText,
 		Bylines:            bylines,
 		People:             people,
-		Locations:          locations,
-		Organisations:      organisations,
-		CreativeWorkTitles: creativeWorkTitles,
-		CommercialItems:    commercialItems,
-		Events:             events,
+		//Locations:          locations,
+		//Organisations:      organisations,
+		//CreativeWorkTitles: creativeWorkTitles,
+		//CommercialItems:    commercialItems,
+		//Events:             events,
 		CacheHit:           cacheHit,
 		Section:            content.Section,
 		WebPublicationDate: content.WebPublicationDate,
@@ -107,9 +106,9 @@ func GetGenderAnalysisForName(name string) (*models.Gender, error) {
 
 func AddGenderToContentAnalysis(contentAnalysis *models.ContentAnalysis) (*models.ContentAnalysis, error) {
 	for _, person := range contentAnalysis.People {
-		gender, err := GetGenderAnalysisForName(*person.Text)
+		gender, err := GetGenderAnalysisForName(*person.Entity.Text)
 		if err != nil {
-			return nil, errors.Wrap(err, "Error adding gender analysis for person "+*person.Text)
+			return nil, errors.Wrap(err, "Error adding gender analysis for person "+*person.Entity.Text)
 		}
 		if gender != nil {
 			person.Gender = *gender
@@ -132,8 +131,8 @@ func AddGenderToContentAnalysis(contentAnalysis *models.ContentAnalysis) (*model
 }
 
 func StoreArticleAnalysis(dbs *sql.DB, p services.JobParameters, entity *models.Person, element *models.ContentAnalysis) error {
-	sqlStatement := "INSERT INTO article_entities (article_id, beginoffset, endoffset, score, text, type) VALUES ($1, $2, $3, $4, $5, $6)"
-	_, err := dbs.Exec(sqlStatement, element.Id, entity.BeginOffset, entity.EndOffset, entity.Score, entity.Text, entity.Type)
+	sqlStatement := "INSERT INTO article_entities (article_id, beginoffset, endoffset, score, text, type, nextWord) VALUES ($1, $2, $3, $4, $5, $6, $7)"
+	_, err := dbs.Exec(sqlStatement, element.Id, entity.Entity.BeginOffset, entity.Entity.EndOffset, entity.Entity.Score, entity.Entity.Text, entity.Entity.Type, entity.NextWord)
 	if err != nil {
 		return errors.Wrap(err, "Could not store article in article db")
 	}
@@ -298,7 +297,8 @@ func RedoGenderAnalysis(query string, maunal bool) error {
 func ComputeAndStoreGenderOfEntities(entities []models.Person, maunal bool, corrections map[string]string, db *sql.DB, p *services.JobParameters) error {
 	corrections["a"] = "hello"
 
-	for _, entity := range entities {
+	for _, entitityWithNextWord := range entities {
+		entity := entitityWithNextWord.Entity
 		if *entity.Type == "PERSON" && *entity.Score > 0.9 {
 			var gender *models.Gender
 			gender, err := GetGenderAnalysisForName(*entity.Text)

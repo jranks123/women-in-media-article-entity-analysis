@@ -50,20 +50,21 @@ func GetNextWordAfterEntities(entities []*comprehend.Entity, bodyTextSegment str
 	return entitiesWithNextWord
 }
 
-func GetEntitiesForArticle(article models.Content) ([]*comprehend.Entity, error) {
+func GetEntitiesForArticle(article models.Content) ([] models.EntityWithNextWord, error) {
 
 	var bodyTextArray = utils.SplitSubN(article.Fields.BodyText, 4000)
 
-	var allEntities []*comprehend.Entity
+	var allEntities [] models.EntityWithNextWord
 
 	// hack to stop it failing on long articles
 	for _, bodyTextSegment := range bodyTextArray {
 		entities, err := GetEntitiesFromBodyText(bodyTextSegment)
+		entitiesWithNextWord := GetNextWordAfterEntities(entities, bodyTextSegment)
 		if err != nil {
 			return nil, errors.Wrap(err, "Error retrieving entities from body text")
 		}
 
-		for _, entity := range entities {
+		for _, entity := range entitiesWithNextWord {
 			allEntities = append(allEntities, entity)
 		}
 	}
