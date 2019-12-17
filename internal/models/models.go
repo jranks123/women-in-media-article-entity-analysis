@@ -1,6 +1,7 @@
 package models
 
 import (
+	"database/sql"
 	"github.com/aws/aws-sdk-go/service/comprehend"
 )
 
@@ -68,4 +69,26 @@ type ContentAnalysis struct {
 	WebPublicationDate string               `json:"webPublicationDate"`
 	Section            string               `json:"section"`
 	Id                 string               `json:"id"`
+}
+
+
+
+/* Query structs */
+
+type EntityResult struct {
+	Name string
+	Gender sql.NullString
+	NextWord sql.NullString
+	Score float64
+	ArticleId string
+}
+
+type GenderCountResult struct {
+	Entities []*EntityResult
+	NumberOfWomen int
+	NumberofMen int
+	NumberOfGenderless int
+	NumberOfFemaleJournalists int
+	NumberOfMaleJournalists int
+	NumberOfArticles int
 }

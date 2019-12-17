@@ -48,7 +48,7 @@ func newContributionsDatabase(p DbParameters) (*contributionsDatabase, error) {
 	}, nil
 }
 
-func queryDb(db *sql.DB, query string) (*QueryResult, error) {
+func QueryDb(db *sql.DB, query string) (*QueryResult, error) {
 	rows, err := db.Query(
 		query,
 	)

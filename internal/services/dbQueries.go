@@ -55,6 +55,31 @@ func (i *QueryResult) Byline() (models.Byline, error) {
 	return models.Byline{Name: name, Gender: models.Gender("")}, nil
 }
 
+func (i *QueryResult) EntityResult() (*models.EntityResult, error) {
+
+	var (
+		name        string
+		gender      sql.NullString
+		nextWord    sql.NullString
+		score 		float64
+		articleId   string
+	)
+
+	err := i.rows.Scan(&name, &gender, &nextWord, &score, &articleId)
+	if err != nil {
+		fmt.Println("Trouble", err)
+		return nil, errors.Wrap(err, "Could not scan row")
+	}
+
+	return &models.EntityResult{
+		Name: name,
+		Gender: gender,
+		NextWord: nextWord,
+		Score: score,
+		ArticleId: articleId,
+	}, nil
+}
+
 func (i *QueryResult) Article() (models.Content, error) {
 
 	var (
@@ -94,7 +119,7 @@ func (i *QueryResult) Article() (models.Content, error) {
 }
 
 func GetPeople(db *sql.DB, query string) ([]models.Person, error) {
-	people, err := queryDb(db, query)
+	people, err := QueryDb(db, query)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to run query")
 	}
@@ -114,7 +139,7 @@ func GetPeople(db *sql.DB, query string) ([]models.Person, error) {
 }
 
 func GetBylines(db *sql.DB, query string) ([]models.Byline, error) {
-	bylines, err := queryDb(db, query)
+	bylines, err := QueryDb(db, query)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to run query")
 	}
@@ -132,7 +157,7 @@ func GetBylines(db *sql.DB, query string) ([]models.Byline, error) {
 }
 
 func GetArticles(db *sql.DB, query string) ([]models.Content, error) {
-	articles, err := queryDb(db, query)
+	articles, err := QueryDb(db, query)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "Could not run query")
