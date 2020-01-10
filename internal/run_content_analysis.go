@@ -308,7 +308,9 @@ func ComputeAndStoreGenderOfEntities(entities []models.Person, maunal bool, corr
 				return errors.Wrap(err, "Error getting gender analysis for "+*entity.Text)
 			}
 
-			if gender == nil && maunal {
+			_, valueFound := corrections[*entity.Text]
+
+			if gender == nil && maunal && !valueFound {
 				gender = GetGenderFromUserInput(*entity.Text)
 				corrections[*entity.Text] = string(*gender)
 			}

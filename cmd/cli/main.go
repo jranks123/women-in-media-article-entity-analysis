@@ -18,12 +18,22 @@ func main() {
 		if err != nil {
 			fmt.Println(err, "There was an error")
 		} else {
-			err := internal.RedoGenderAnalysis(string(query), true)
+			err := internal.PrintResults(string(queryCondition))
+			if err != nil {
+				fmt.Println(err, "Error printing")
+			} else {
+				fmt.Println( "Wrote results to file")
+			}
+		/*	//err := internal.RedoGenderAnalysis(string(query), true)
 			if err != nil {
 				fmt.Println(err, "There was an error")
 			} else {
-				fmt.Println("Successfully redid Gender Analysis")
-			}
+				fmt.Println("Successfully did Gender Analysis")
+				err := internal.PrintResults(string(queryCondition))
+				if err != nil {
+					fmt.Println(err, "Wrote results to file")
+				}
+			}*/
 		}
 	}
 }

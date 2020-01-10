@@ -7,7 +7,7 @@ func ConstructContentAnalysisQuery(queryCondition string) string {
 			"FROM article " +
 			"left join author " +
 			"on article.id  = author.id " +
-		   queryCondition + " ORDER BY published::date ASC "
+		   queryCondition + " ORDER BY published::date ASC LIMIT 10"
 }
 
 
