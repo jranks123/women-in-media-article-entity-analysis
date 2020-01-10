@@ -169,6 +169,8 @@ func StoreAllContentAnalysis(dbs *sql.DB, p services.JobParameters, contentAnaly
 
 	}
 
+	println("Successfully stored entities")
+
 	return nil
 }
 
@@ -299,14 +301,14 @@ func ComputeAndStoreGenderOfEntities(entities []models.Person, maunal bool, corr
 
 	for _, entitityWithNextWord := range entities {
 		entity := entitityWithNextWord.Entity
-		if *entity.Type == "PERSON" && *entity.Score > 0.9 {
+		if *entity.Type == "PERSON" && utils.EntityPassesConfidenceChecks(*entity.Text, *entity.Score) {
 			var gender *models.Gender
 			gender, err := GetGenderAnalysisForName(*entity.Text)
 			if err != nil {
 				return errors.Wrap(err, "Error getting gender analysis for "+*entity.Text)
 			}
 
-			if gender == nil && maunal && utils.WordCount(*entity.Text) > 1 {
+			if gender == nil && maunal {
 				gender = GetGenderFromUserInput(*entity.Text)
 				corrections[*entity.Text] = string(*gender)
 			}

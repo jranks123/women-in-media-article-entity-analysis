@@ -2,23 +2,28 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"women-in-media-article-entity-analysis/internal"
+	"women-in-media-article-entity-analysis/internal/utils"
 )
 
 func main() {
-	query := "SELECT article.id, published, content, canonical_url, headline, name, section FROM article left join author on article.id  = author.id WHERE article.id = '1202' ORDER BY published::date ASC"
-	println("hello2")
-	_,err := internal.GetContentAnalysis(query)
-println("hello4")
+	queryCondition, err := ioutil.ReadFile("/Users/jonathan_rankin/code/women-in-media-article-entity-analysis/cmd/query_condition.sql")
 	if err != nil {
-		fmt.Println(err, "There was an error")
+		println(err, "Couldn't read file ")
 	} else {
-		fmt.Println("Successfully stored entities in Postgres")
-		err := internal.RedoGenderAnalysis(query, true)
+		query := utils.ConstructContentAnalysisQuery(string(queryCondition))
+		println(query)
+		_, err := internal.GetContentAnalysis(string(query))
 		if err != nil {
 			fmt.Println(err, "There was an error")
 		} else {
-			fmt.Println("Successfully stored entities in Postgres")
+			err := internal.RedoGenderAnalysis(string(query), true)
+			if err != nil {
+				fmt.Println(err, "There was an error")
+			} else {
+				fmt.Println("Successfully redid Gender Analysis")
+			}
 		}
 	}
 }
