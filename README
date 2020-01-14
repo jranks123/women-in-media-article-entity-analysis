@@ -7,7 +7,7 @@ How to run program
 2.6) If you get a message along the lines of "Please commit your changes or stash them before you merge. Aborting", as long as you haven't made any code changes, you should be safe to run
 "git stash" (which will wipe your changes) followed by git pull. WARNING: this will delete any files containing analysis that have ended up in the directory, so make sure you have copied this
 somewhere else if you want to keep it going forwards.
-3) make sure that the query in main.go returns the articles that you want to analyse
+3) make sure that the query condition in cmd/query_condition.sql returns the articles that you want to analyse
 4) Click "File -> Save all" in Atom
 4) paste the following command and press enter:  go build && cli.exe
 
