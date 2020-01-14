@@ -25,7 +25,7 @@ func PrintResults(queryCondition string) error {
 	for entities.Next() {
 		entity, err := entities.EntityResult()
 		if err == nil{
-			if utils.EntityPassesConfidenceChecks(entity.Name, entity.Score) {
+			if utils.EntityPassesConfidenceChecks(entity.Name.String, entity.Score) {
 				entitiesArray = append(entitiesArray, entity)
 			}
 		} else {
@@ -51,7 +51,7 @@ func PrintResults(queryCondition string) error {
 	resultString += ("Total number of men: " + strconv.Itoa(results.NumberofMen)+ "\n")
 	resultString += ("Named entities:" + "\n")
 	for _, entity := range results.Entities {
-		resultString += (entity.Name + " (" + entity.Gender.String + ")" + "\n" )
+		resultString += (entity.Name.String + " (" + entity.Gender.String + ")" + "\n" )
 	}
 
 	d1 := []byte(resultString)
