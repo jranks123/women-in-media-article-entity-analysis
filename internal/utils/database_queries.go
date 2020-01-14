@@ -7,7 +7,7 @@ func ConstructContentAnalysisQuery(queryCondition string) string {
 			"FROM article " +
 			"left join author " +
 			"on article.id  = author.id " +
-		   queryCondition + " ORDER BY published::date ASC LIMIT 10"
+		   queryCondition + " ORDER BY published::date ASC"
 }
 
 
@@ -17,5 +17,5 @@ func ConstructEntitiesQuery(queryCondition string) string {
 		" LEFT join article_entities ae" +
 		" ON article.id = ae.article_id " +
 		" LEFT join names n " +
-		" ON ae.text = n.name " + queryCondition
+		" ON ae.text = n.name " + queryCondition + "AND text is not null"
 }

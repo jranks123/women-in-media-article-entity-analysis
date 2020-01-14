@@ -49,7 +49,7 @@ func (i *QueryResult) Byline() (models.Byline, error) {
 
 	err := i.rows.Scan(&name)
 	if err != nil {
-		fmt.Println("Trouble 1", err)
+		fmt.Println("Trouble 2", err)
 	}
 
 	return models.Byline{Name: name, Gender: models.Gender("")}, nil
@@ -58,7 +58,7 @@ func (i *QueryResult) Byline() (models.Byline, error) {
 func (i *QueryResult) EntityResult() (*models.EntityResult, error) {
 
 	var (
-		name        sql.NullString
+		name        string
 		gender      sql.NullString
 		nextWord    sql.NullString
 		score 		float64
@@ -67,7 +67,7 @@ func (i *QueryResult) EntityResult() (*models.EntityResult, error) {
 
 	err := i.rows.Scan(&name, &gender, &nextWord, &score, &articleId)
 	if err != nil {
-		fmt.Println("Trouble 2", err)
+		fmt.Println("Trouble", err)
 		return nil, errors.Wrap(err, "Could not scan row")
 	}
 
@@ -94,7 +94,7 @@ func (i *QueryResult) Article() (models.Content, error) {
 
 	err := i.rows.Scan(&id, &published, &content, &canonical_url, &headline, &name, &section)
 	if err != nil {
-		fmt.Println("Trouble 3", err)
+		fmt.Println("Trouble", err)
 	}
 
 	var byline string

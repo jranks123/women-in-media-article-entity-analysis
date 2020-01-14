@@ -76,7 +76,7 @@ type ContentAnalysis struct {
 /* Query structs */
 
 type EntityResult struct {
-	Name sql.NullString
+	Name string
 	Gender sql.NullString
 	NextWord sql.NullString
 	Score float64
