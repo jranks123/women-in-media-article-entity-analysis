@@ -139,10 +139,10 @@ func StoreArticleAnalysis(dbs *sql.DB, p services.JobParameters, entity *models.
 	return nil
 }
 
-func StorePersonGender(dbs *sql.DB, p services.JobParameters, name string, gender models.Gender) error {
+func StorePersonGender(dbs *sql.DB, p services.JobParameters, name string, gender models.Gender, num string) error {
 	sqlStatement := "INSERT INTO names (name, gender) VALUES ($1, $2) ON conflict (name) do update set gender = $2"
 
-	println("About to do " + name + " with gender " + string(gender))
+	println( num + " About to do " + name + " with gender " + string(gender) )
 	_, err := dbs.Exec(sqlStatement, name, gender)
 	if err != nil {
 		return errors.Wrap(err, "Could not store name in article db")
@@ -159,14 +159,6 @@ func StoreAllContentAnalysis(dbs *sql.DB, p services.JobParameters, contentAnaly
 				return errors.Wrap(err, "Could not store article in article db")
 			}
 		}
-
-		for _, byline := range element.Bylines {
-			err := StorePersonGender(dbs, p, byline.Name, byline.Gender)
-			if err != nil {
-				return errors.Wrap(err, "Could not store byline gender")
-			}
-		}
-
 	}
 
 	println("Successfully stored entities")
@@ -282,7 +274,7 @@ func RedoGenderAnalysis(query string, maunal bool) error {
 			}
 
 			if gender != nil {
-				storeErr := StorePersonGender(db, *p, byline.Name, *gender)
+				storeErr := StorePersonGender(db, *p, byline.Name, *gender, "2")
 				if storeErr != nil {
 					return errors.Wrap(storeErr, "Error storing content analysis")
 				}
@@ -321,7 +313,7 @@ func ComputeAndStoreGenderOfEntities(entities []models.Person, maunal bool, corr
 			}
 
 			if gender != nil {
-				storeErr := StorePersonGender(db, *p, *entity.Text, *gender)
+				storeErr := StorePersonGender(db, *p, *entity.Text, *gender, "3")
 				if storeErr != nil {
 					return errors.Wrap(storeErr, "Error storing content analysis")
 				}
@@ -353,7 +345,7 @@ func GetAndStoreArticleEntities(query string) ([]*models.ContentAnalysis, error)
 
 		if len(entitiesFromPostgres) == 0 {
 
-			fmt.Println("about to get entities for article", element.Url)
+			fmt.Println("Either analysis has not been run, or article has no entities. About to get entities for article", element.Url)
 
 			entities, err := services.GetEntitiesForArticle(element)
 			if err != nil {
