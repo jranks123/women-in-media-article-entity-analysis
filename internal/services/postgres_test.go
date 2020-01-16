@@ -22,7 +22,7 @@ func TestGetArticleFields(t *testing.T) {
 
 	db, err := ConnectToPostgres(p.Db)
 
-	res, err := GetArticleFields(db, p)
+	res, err := GetArticlesArray(db, p)
 
 	if err != nil {
 		t.Error(err)

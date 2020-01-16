@@ -60,7 +60,7 @@ func QueryDb(db *sql.DB, query string) (*QueryResult, error) {
 	return &articles, nil
 }
 
-func GetArticleFields(db *sql.DB, p JobParameters) ([]models.Content, error) {
+func GetArticlesArray(db *sql.DB, p JobParameters) ([]models.Content, error) {
 
 	articles, err := GetArticles(db, p.Query)
 

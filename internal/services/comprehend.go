@@ -39,7 +39,7 @@ func GetNextWordAfterEntities(entities []*comprehend.Entity, bodyTextSegment str
 
 	var entitiesWithNextWord []models.EntityWithNextWord
 	for _, entity := range entities {
-		bodyTextSegmentFromEntity :=  bodyTextSegment[int(*entity.BeginOffset):]
+		bodyTextSegmentFromEntity :=  bodyTextSegment[int(*entity.BeginOffset) + len(*entity.Text)-1:]
 		wordsFromEntity := strings.Fields(bodyTextSegmentFromEntity)
 		if len(wordsFromEntity) >= 2 {
 			nextWord := wordsFromEntity[1]

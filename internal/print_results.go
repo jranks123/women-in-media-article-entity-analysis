@@ -11,7 +11,7 @@ import (
 )
 
 func PrintResults(queryCondition string) error {
-	query := utils.ConstructEntitiesQuery(queryCondition)
+	query := utils.ConstructPrintResultsQuery(queryCondition)
 	db, _, err := GetDbAndParameters(query)
 
 	entities, err := services.QueryDb(db, query)
@@ -32,6 +32,7 @@ func PrintResults(queryCondition string) error {
 			fmt.Println("error parsing entity ")
 		}
 	}
+
 
 	articleCount, menCount, womenCount, noGenderCount := utils.EntityCounts(entitiesArray)
 

@@ -23,15 +23,15 @@ func TestGetEntitiesForArticle(t *testing.T) {
 		t.Error(err)
 	} else {
 		for _, entity := range res {
-			if *entity.Type == "PERSON" && *entity.Score > 0.90 {
-				fmt.Println(entity.GoString())
+			if *entity.Entity.Type == "PERSON" && *entity.Entity.Score > 0.90 {
+				fmt.Println(entity.Entity.GoString())
 			}
 		}
 	}
 }
 
 func TestGetNextWordAfterEntities(t *testing.T) {
-	copy := "hello Jonny happy Ben sad then my mate Benji ran"
+	copy := "hello Jonny Rankin happy Ben sad then my mate Benji ran"
 	res, err := GetEntitiesFromBodyText(copy)
 	if err != nil {
 		t.Error(err)

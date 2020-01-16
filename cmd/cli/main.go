@@ -14,7 +14,7 @@ func main() {
 	} else {
 		query := utils.ConstructContentAnalysisQuery(string(queryCondition))
 		println(query)
-		_, err := internal.GetContentAnalysis(string(query))
+		_, err := internal.GetAndStoreArticleEntities(string(query))
 		if err != nil {
 			fmt.Println(err, "There was an error")
 		} else {

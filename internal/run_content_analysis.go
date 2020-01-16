@@ -242,7 +242,7 @@ func RedoGenderAnalysis(query string, maunal bool) error {
 
 	defer db.Close()
 
-	contentSlice, err := services.GetArticleFields(db, *p)
+	contentSlice, err := services.GetArticlesArray(db, *p)
 
 	println("Content slice size:", len(contentSlice))
 
@@ -259,6 +259,8 @@ func RedoGenderAnalysis(query string, maunal bool) error {
 		if err != nil {
 			return errors.Wrap(err, "error checking if article has entities")
 		}
+
+
 
 		error := ComputeAndStoreGenderOfEntities(entitiesFromPostgres, maunal, corrections, db, p)
 		if error != nil {
@@ -287,10 +289,13 @@ func RedoGenderAnalysis(query string, maunal bool) error {
 			}
 		}
 
-		correctionsErr := services.StoreCorrections(corrections)
-		if correctionsErr != nil {
-			return errors.Wrap(correctionsErr, "Could not store corrections")
+		if len(corrections) > 0 {
+			correctionsErr := services.StoreCorrections(corrections)
+			if correctionsErr != nil {
+				return errors.Wrap(correctionsErr, "Could not store corrections")
+			}
 		}
+
 
 	}
 	return nil
@@ -326,7 +331,7 @@ func ComputeAndStoreGenderOfEntities(entities []models.Person, maunal bool, corr
 	return nil
 }
 
-func GetContentAnalysis(query string) ([]*models.ContentAnalysis, error) {
+func GetAndStoreArticleEntities(query string) ([]*models.ContentAnalysis, error) {
 
 	db, p, err := GetDbAndParameters(query)
 
@@ -334,7 +339,7 @@ func GetContentAnalysis(query string) ([]*models.ContentAnalysis, error) {
 		return nil, errors.Wrap(err, "Couldn't get db and job parameters")
 	}
 
-	contentSlice, err := services.GetArticleFields(db, *p)
+	contentSlice, err := services.GetArticlesArray(db, *p)
 
 	var contentAnalysisSlice []*models.ContentAnalysis
 
@@ -361,13 +366,15 @@ func GetContentAnalysis(query string) ([]*models.ContentAnalysis, error) {
 		}
 	}
 
-	contentAnalysisSlice, err = AddGenderToContentAnalysisSlice(contentAnalysisSlice)
-
 	storeErr := StoreAllContentAnalysis(db, *p, contentAnalysisSlice)
 
 	if storeErr != nil {
 		return nil, errors.Wrap(storeErr, "Error storing content analysis")
 	}
 
+	closeError := db.Close()
+	if closeError != nil {
+		return nil, errors.Wrap(storeErr, "Error closing db")
+	}
 	return contentAnalysisSlice, nil
 }
