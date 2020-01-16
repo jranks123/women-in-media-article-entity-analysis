@@ -42,3 +42,53 @@ join public.names n
 on a.text = n.name
 where  <inset conditions>
 and n.gender = ''
+
+/* see summary of all the articles, their counts and their entities */
+SELECT article.id,
+author.name as journlist_name,
+n2.gender as journalist_gender,
+count(*) FILTER (WHERE n.gender = 'Male') as men_count,
+    count(*) FILTER (WHERE n.gender = 'Female') as female_count,
+array_agg(json_build_object('text', coalesce(text, ''), 'gender', n.gender, 'nextWord', nextWord, 'score', coalesce(score, 0)))
+    FROM article article
+    LEFT join article_entities ae
+    ON article.id = ae.article_id
+    LEFT join names n
+    ON ae.text = n.name
+    left join author_attr aa
+    ON article.id = aa.article_id
+    LEFT join author
+    ON aa.author_id = author.id
+    LEFT join names n2
+    ON author.name = n2.name
+where  <inset conditions>
+
+
+/* see oveall summary of the analysis */
+with analysis as (SELECT article.id,
+	author.name as journlist_name,
+	n2.gender as journalist_gender,
+	count(*) FILTER (WHERE n.gender = 'Female') as number_of_women,
+	count(*) FILTER (WHERE n.gender = 'Male') as number_of_men,
+	array_agg(json_build_object('text', coalesce(text, ''), 'gender', n.gender, 'nextWord', nextWord, 'score', coalesce(score, 0)))
+		FROM article article
+		LEFT join article_entities ae
+		ON article.id = ae.article_id
+		LEFT join names n
+		ON ae.text = n.name
+		left join author_attr aa
+		ON article.id = aa.article_id
+		LEFT join author
+		ON aa.author_id = author.id
+		LEFT join names n2
+		ON author.name = n2.name
+WHERE <insert condition>
+group by 1,2,3)
+
+select count(*) as number_of_articles,
+count(*) FILTER (WHERE journalist_gender = 'Female') as female_journalise_count,
+count(*) FILTER (WHERE journalist_gender = 'Male') as male_journalise_count,
+sum(number_of_men) as overall_men_count,
+sum(number_of_women) as overall_women_count
+from analysis
+
