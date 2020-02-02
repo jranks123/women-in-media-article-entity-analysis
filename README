@@ -11,7 +11,7 @@ somewhere else if you want to keep it going forwards.
 4) Click "File -> Save all" in Atom
 4) paste the following command and press enter:  go build && ./cli -runType=<run type> -manuallyCorrectGender=<true or false>
 
-in the above statement, you will need to replace <run type> with ENTITIES_AND_GENDER, JUST_ENTITIES or  JUST_GENDER, and <true or false> with either true or false
+in the above statement, you will need to replace <run type> with ENTITIES_AND_GENDER, JUST_ENTITIES or JUST_GENDER, and <true or false> with either true or false
 
 This will analyse all articles that match the query.
 
