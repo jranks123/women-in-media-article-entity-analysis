@@ -224,7 +224,7 @@ func GetGenderFromUserInput(name string) *models.Gender {
 
 }
 
-func RedoGenderAnalysis(query string, maunal bool) error {
+func RedoGenderAnalysis(query string, manual bool) error {
 	db, p, err := GetDbAndParameters(query)
 
 	if err != nil {
@@ -254,7 +254,7 @@ func RedoGenderAnalysis(query string, maunal bool) error {
 
 
 
-		error := ComputeAndStoreGenderOfEntities(entitiesFromPostgres, maunal, corrections, db, p)
+		error := ComputeAndStoreGenderOfEntities(entitiesFromPostgres, manual, corrections, db, p)
 		if error != nil {
 			return errors.Wrap(error, "error in compute and store gender of entities")
 		}
@@ -268,7 +268,7 @@ func RedoGenderAnalysis(query string, maunal bool) error {
 				return errors.Wrap(err, "Error getting gender analysis for "+byline.Name)
 			}
 
-			if gender == nil && maunal && utils.WordCount(byline.Name) > 1 {
+			if gender == nil && manual && utils.WordCount(byline.Name) > 1 {
 				gender = GetGenderFromUserInput(byline.Name)
 				corrections[byline.Name] = string(*gender)
 			}
@@ -293,7 +293,7 @@ func RedoGenderAnalysis(query string, maunal bool) error {
 	return nil
 }
 
-func ComputeAndStoreGenderOfEntities(entities []models.Person, maunal bool, corrections map[string]string, db *sql.DB, p *services.JobParameters) error {
+func ComputeAndStoreGenderOfEntities(entities []models.Person, manual bool, corrections map[string]string, db *sql.DB, p *services.JobParameters) error {
 	corrections["a"] = "hello"
 
 	for _, entitityWithNextWord := range entities {
@@ -307,7 +307,7 @@ func ComputeAndStoreGenderOfEntities(entities []models.Person, maunal bool, corr
 
 			_, valueFound := corrections[*entity.Text]
 
-			if gender == nil && maunal && !valueFound {
+			if gender == nil && manual && !valueFound {
 				gender = GetGenderFromUserInput(*entity.Text)
 				corrections[*entity.Text] = string(*gender)
 			}
@@ -345,7 +345,7 @@ func GetAndStoreArticleEntities(query string) ([]*models.ContentAnalysis, error)
 
 		if len(entitiesFromPostgres) == 0 {
 
-			fmt.Println("Either analysis has not been run, or article has no entities. About to get entities for article", element.Url)
+			fmt.Println("About to get entities for article", element.Url)
 
 			entities, err := services.GetEntitiesForArticle(element)
 			if err != nil {

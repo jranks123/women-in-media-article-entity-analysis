@@ -47,7 +47,7 @@ func PrintResults(queryCondition string) error {
 	}
 
 	resultString := ""
-	resultString += ("Total number of articles: " + strconv.Itoa(results.NumberOfArticles) + "\n")
+	resultString += ("Total number of articles that had at least one entity: " + strconv.Itoa(results.NumberOfArticles) + "\n")
 	resultString += ("Total number of women: " + strconv.Itoa(results.NumberOfWomen) + "\n")
 	resultString += ("Total number of men: " + strconv.Itoa(results.NumberofMen)+ "\n")
 	resultString += ("Named entities:" + "\n")
