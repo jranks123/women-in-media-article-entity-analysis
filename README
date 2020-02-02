@@ -9,7 +9,9 @@ How to run program
 somewhere else if you want to keep it going forwards.
 3) make sure that the query condition in cmd/query_condition.sql returns the articles that you want to analyse
 4) Click "File -> Save all" in Atom
-4) paste the following command and press enter:  go build && cli.exe
+4) paste the following command and press enter:  go build && ./cli -runType=<run type> -manuallyCorrectGender=<true or false>
+
+in the above statement, you will need to replace <run type> with ENTITIES_AND_GENDER, JUST_ENTITIES or  JUST_GENDER, and <true or false> with either true or false
 
 This will analyse all articles that match the query.
 
