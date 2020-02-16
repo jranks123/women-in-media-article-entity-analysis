@@ -59,6 +59,7 @@ func GetEntitiesForArticle(article models.Content) ([] models.EntityWithNextWord
 	// hack to stop it failing on long articles
 	for _, bodyTextSegment := range bodyTextArray {
 		entities, err := GetEntitiesFromBodyText(bodyTextSegment)
+
 		entitiesWithNextWord := GetNextWordAfterEntities(entities, bodyTextSegment)
 		if err != nil {
 			return nil, errors.Wrap(err, "Error retrieving entities from body text")

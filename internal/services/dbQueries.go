@@ -14,7 +14,7 @@ type ArticleQueryParams struct {
 	Section string
 }
 
-func (i *QueryResult) Person() (*models.Person, error) {
+func (i *QueryResult) Entity() (*comprehend.Entity, error) {
 
 	var (
 		beginoffset int64
@@ -36,9 +36,7 @@ func (i *QueryResult) Person() (*models.Person, error) {
 		Text:        &text,
 		Type:        &entityType,
 	}
-
-	entityWithNextWord := &models.EntityWithNextWord{Entity: &entity, NextWord: ""}
-	return &models.Person{*entityWithNextWord, "" }, nil
+	return &entity, nil
 }
 
 func (i *QueryResult) Byline() (models.Byline, error) {
@@ -55,7 +53,7 @@ func (i *QueryResult) Byline() (models.Byline, error) {
 	return models.Byline{Name: name, Gender: models.Gender("")}, nil
 }
 
-func (i *QueryResult) EntityResult() (*models.EntityResult, error) {
+func (i *QueryResult) EntityFromPostgresResult() (*models.EntityResult, error) {
 
 	var (
 		name        string
@@ -118,23 +116,23 @@ func (i *QueryResult) Article() (models.Content, error) {
 	}, nil
 }
 
-func GetPeople(db *sql.DB, query string) ([]models.Person, error) {
-	people, err := QueryDb(db, query)
+func GetEntities(db *sql.DB, query string) ([]comprehend.Entity, error) {
+	entities, err := QueryDb(db, query)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to run query")
 	}
 
-	var peopleArray []models.Person
+	var entityArray []comprehend.Entity
 
-	for people.Next() {
+	for entities.Next() {
 
-		person, err := people.Person()
+		entity, err := entities.Entity()
 
-		if err == nil && person != nil {
-			peopleArray = append(peopleArray, *person)
+		if err == nil && entities != nil {
+			entityArray = append(entityArray, *entity)
 		}
 	}
-	return peopleArray, nil
+	return entityArray, nil
 
 }
 

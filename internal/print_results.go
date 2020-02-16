@@ -23,7 +23,7 @@ func PrintResults(queryCondition string) error {
 	var entitiesArray []*models.EntityResult
 
 	for entities.Next() {
-		entity, err := entities.EntityResult()
+		entity, err := entities.EntityFromPostgresResult()
 		if err == nil{
 			if utils.EntityPassesConfidenceChecks(entity.Name, entity.Score) {
 				entitiesArray = append(entitiesArray, entity)

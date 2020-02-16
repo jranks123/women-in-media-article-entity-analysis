@@ -59,12 +59,7 @@ type ContentAnalysis struct {
 	Headline           string               `json:"headline"`
 	BodyText           string               `json:"bodyText"`
 	Bylines            []*Byline            `json:"bylines"`
-	People             []*Person            `json:"people"`
-	Locations          []*comprehend.Entity `json:"locations"`
-	Organisations      []*comprehend.Entity `json:"organisations"`
-	CreativeWorkTitles []*comprehend.Entity `json:"creativeWorkTitles"`
-	CommercialItems    []*comprehend.Entity `json:"commercialItems"`
-	Events             []*comprehend.Entity `json:"events"`
+	Entities             []EntityWithNextWord `json:"people"`
 	CacheHit           bool                 `json:"cacheHit"`
 	WebPublicationDate string               `json:"webPublicationDate"`
 	Section            string               `json:"section"`
