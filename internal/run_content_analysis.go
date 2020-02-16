@@ -130,7 +130,7 @@ func AddGenderToContentAnalysis(contentAnalysis *models.ContentAnalysis) (*model
 
 }
 
-func StoreArticleAnalysis(dbs *sql.DB, p services.JobParameters, entity *models.Person, element *models.ContentAnalysis) error {
+func StoreEntity(dbs *sql.DB, p services.JobParameters, entity *models.Person, element *models.ContentAnalysis) error {
 	sqlStatement := "INSERT INTO article_entities (article_id, beginoffset, endoffset, score, text, type, nextWord) VALUES ($1, $2, $3, $4, $5, $6, $7)"
 	_, err := dbs.Exec(sqlStatement, element.Id, entity.Entity.BeginOffset, entity.Entity.EndOffset, entity.Entity.Score, entity.Entity.Text, entity.Entity.Type, entity.NextWord)
 	if err != nil {
@@ -149,21 +149,6 @@ func StorePersonGender(dbs *sql.DB, p services.JobParameters, name string, gende
 	}
 	return nil
 
-}
-
-func StoreAllContentAnalysis(dbs *sql.DB, p services.JobParameters, contentAnalysisSlice []*models.ContentAnalysis) error {
-	for _, element := range contentAnalysisSlice {
-		for _, entity := range element.People {
-			err := StoreArticleAnalysis(dbs, p, entity, element)
-			if err != nil {
-				return errors.Wrap(err, "Could not store article in article db")
-			}
-		}
-	}
-
-	println("Successfully stored entities")
-
-	return nil
 }
 
 func GetDbAndParameters(query string) (*sql.DB, *services.JobParameters, error) {
@@ -324,7 +309,7 @@ func ComputeAndStoreGenderOfEntities(entities []models.Person, manual bool, corr
 }
 
 func GetAndStoreArticleEntities(query string) ([]*models.ContentAnalysis, error) {
-
+	fmt.Println("About to get and store entites")
 	db, p, err := GetDbAndParameters(query)
 
 	if err != nil {
@@ -333,7 +318,13 @@ func GetAndStoreArticleEntities(query string) ([]*models.ContentAnalysis, error)
 
 	contentSlice, err := services.GetArticlesArray(db, *p)
 
+	if err != nil {
+		return nil, errors.Wrap(err, "Error getting articles")
+	}
+
 	var contentAnalysisSlice []*models.ContentAnalysis
+	fmt.Println("Number of articles: ")
+	fmt.Println(len(contentSlice))
 
 	for _, element := range contentSlice {
 
@@ -352,21 +343,22 @@ func GetAndStoreArticleEntities(query string) ([]*models.ContentAnalysis, error)
 				return nil, errors.Wrap(err, "Error getting entities for article "+element.Url)
 			}
 			contentAnalysis := ConstructContentAnalysis(element, entities, false)
+			for _, entity := range contentAnalysis.People {
+				err := StoreEntity(db, *p, entity, contentAnalysis)
+				if err != nil {
+					return nil, errors.Wrap(err, "Could not store article in article db")
+				}
+			}
+			fmt.Println("Finished storing entities for article " + element.Url)
 			contentAnalysisSlice = append(contentAnalysisSlice, contentAnalysis)
 		} else {
 			fmt.Println("already run analysis for ", element.Url)
 		}
 	}
 
-	storeErr := StoreAllContentAnalysis(db, *p, contentAnalysisSlice)
-
-	if storeErr != nil {
-		return nil, errors.Wrap(storeErr, "Error storing content analysis")
-	}
-
 	closeError := db.Close()
 	if closeError != nil {
-		return nil, errors.Wrap(storeErr, "Error closing db")
+		return nil, errors.Wrap(closeError, "Error closing db")
 	}
 	return contentAnalysisSlice, nil
 }

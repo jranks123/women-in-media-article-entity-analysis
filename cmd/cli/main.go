@@ -31,7 +31,6 @@ func justGenderAnalysis(query string, manuallyCorrectGender bool) {
 
 
 func main() {
-
 	queryCondition, err := ioutil.ReadFile("../query_condition.sql")
 	if err != nil {
 		println(err, "Couldn't read file ")
