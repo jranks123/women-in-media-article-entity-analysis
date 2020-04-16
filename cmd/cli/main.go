@@ -53,6 +53,8 @@ func main() {
 			justGenderAnalysis(query, *manuallyCorrectGender)
 		} else if (*runType == "JUST_GENDER") {
 			justGenderAnalysis(query, *manuallyCorrectGender)
+		} else if (*runType == "MANUALLY_DO_GENDER_FOR_WHOLE_DATABASE"){
+
 		}
 		err := internal.PrintResults(string(queryCondition))
 		if err != nil {

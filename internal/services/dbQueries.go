@@ -121,7 +121,7 @@ func (i *QueryResult) Article() (models.Content, error) {
 func GetPeople(db *sql.DB, query string) ([]models.Person, error) {
 	people, err := QueryDb(db, query)
 	if err != nil {
-		return nil, errors.Wrap(err, "Failed to run query")
+		return nil, errors.Wrap(err, "Failed to run query in GetPeople")
 	}
 
 	var peopleArray []models.Person

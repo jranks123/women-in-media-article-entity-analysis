@@ -15,3 +15,5 @@ project/boot
 
 *.pem
 credentials.json
+
+scripts/stanford-corenlp-full-2018-10-05/*
