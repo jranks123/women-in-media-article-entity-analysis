@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"database/sql"
 	"fmt"
+	"github.com/aws/aws-sdk-go/service/comprehend"
 	"github.com/pkg/errors"
 	"os"
 	"strings"
@@ -21,46 +22,12 @@ func ConstructContentAnalysis(content models.Content, entities [] models.EntityW
 		bylines = append(bylines, &models.Byline{byline, ""})
 	}
 
-	var people []*models.Person = nil
-	//var locations []*comprehend.Entity = nil
-	//var organisations []*comprehend.Entity = nil
-	//var creativeWorkTitles []*comprehend.Entity = nil
-	//var commercialItems []*comprehend.Entity = nil
-	//var events []*comprehend.Entity = nil
-
-	for _, entity := range entities {
-		if *entity.Entity.Type == "PERSON" {
-			people = append(people, &models.Person{EntityWithNextWord: entity})
-		}
-		//if *entity.Type == "LOCATION" {
-		//	locations = append(locations, entity)
-		//}
-		//if *entity.Type == "ORGANIZATION" {
-		//	organisations = append(organisations, entity)
-		//}
-		//if *entity.Type == "COMMERCIAL_ITEM" {
-		//	commercialItems = append(commercialItems, entity)
-		//}
-		//if *entity.Type == "TITLE" {
-		//	creativeWorkTitles = append(creativeWorkTitles, entity)
-		//}
-		//if *entity.Type == "EVENT" {
-		//	events = append(events, entity)
-		//}
-
-	}
-
 	contentAnalysis := models.ContentAnalysis{
 		Path:               content.Url,
 		Headline:           content.Fields.Headline,
 		BodyText:           content.Fields.BodyText,
 		Bylines:            bylines,
-		People:             people,
-		//Locations:          locations,
-		//Organisations:      organisations,
-		//CreativeWorkTitles: creativeWorkTitles,
-		//CommercialItems:    commercialItems,
-		//Events:             events,
+		Entities:           entities,
 		CacheHit:           cacheHit,
 		Section:            content.Section,
 		WebPublicationDate: content.WebPublicationDate,
@@ -68,19 +35,6 @@ func ConstructContentAnalysis(content models.Content, entities [] models.EntityW
 	}
 
 	return &contentAnalysis
-}
-
-func AddGenderToContentAnalysisSlice(contentAnalysisSlice []*models.ContentAnalysis) ([]*models.ContentAnalysis, error) {
-	var contentAnalysisWithGenderSlice []*models.ContentAnalysis
-	for _, contentAnalysis := range contentAnalysisSlice {
-		contentAnalysisWithGender, err := AddGenderToContentAnalysis(contentAnalysis)
-		if err != nil {
-			return nil, errors.Wrap(err, "Error appending gender for slice for "+contentAnalysis.Path)
-		}
-		contentAnalysisWithGenderSlice = append(contentAnalysisWithGenderSlice, contentAnalysisWithGender)
-		return contentAnalysisWithGenderSlice, nil
-	}
-	return contentAnalysisWithGenderSlice, nil
 }
 
 func GetGenderAnalysisForName(name string) (*models.Gender, error) {
@@ -104,33 +58,8 @@ func GetGenderAnalysisForName(name string) (*models.Gender, error) {
 	return nil, nil
 }
 
-func AddGenderToContentAnalysis(contentAnalysis *models.ContentAnalysis) (*models.ContentAnalysis, error) {
-	for _, person := range contentAnalysis.People {
-		gender, err := GetGenderAnalysisForName(*person.Entity.Text)
-		if err != nil {
-			return nil, errors.Wrap(err, "Error adding gender analysis for person "+*person.Entity.Text)
-		}
-		if gender != nil {
-			person.Gender = *gender
-		}
-	}
 
-	for _, byline := range contentAnalysis.Bylines {
-		gender, err := GetGenderAnalysisForName(byline.Name)
-
-		if err != nil {
-			return nil, errors.Wrap(err, "Error getting gender analysis for byline "+byline.Name)
-		}
-		if gender != nil {
-			byline.Gender = *gender
-		}
-	}
-
-	return contentAnalysis, nil
-
-}
-
-func StoreArticleAnalysis(dbs *sql.DB, p services.JobParameters, entity *models.Person, element *models.ContentAnalysis) error {
+func StoreEntity(dbs *sql.DB, entity *models.EntityWithNextWord, element *models.ContentAnalysis) error {
 	sqlStatement := "INSERT INTO article_entities (article_id, beginoffset, endoffset, score, text, type, nextWord) VALUES ($1, $2, $3, $4, $5, $6, $7)"
 	_, err := dbs.Exec(sqlStatement, element.Id, entity.Entity.BeginOffset, entity.Entity.EndOffset, entity.Entity.Score, entity.Entity.Text, entity.Entity.Type, entity.NextWord)
 	if err != nil {
@@ -139,31 +68,16 @@ func StoreArticleAnalysis(dbs *sql.DB, p services.JobParameters, entity *models.
 	return nil
 }
 
-func StorePersonGender(dbs *sql.DB, p services.JobParameters, name string, gender models.Gender, num string) error {
+func StorePersonGender(dbs *sql.DB, p services.JobParameters, name string, gender models.Gender) error {
 	sqlStatement := "INSERT INTO names (name, gender) VALUES ($1, $2) ON conflict (name) do update set gender = $2"
 
-	println( num + " About to do " + name + " with gender " + string(gender) )
+	println("About to store " + name + " with gender " + string(gender) )
 	_, err := dbs.Exec(sqlStatement, name, gender)
 	if err != nil {
 		return errors.Wrap(err, "Could not store name in article db")
 	}
 	return nil
 
-}
-
-func StoreAllContentAnalysis(dbs *sql.DB, p services.JobParameters, contentAnalysisSlice []*models.ContentAnalysis) error {
-	for _, element := range contentAnalysisSlice {
-		for _, entity := range element.People {
-			err := StoreArticleAnalysis(dbs, p, entity, element)
-			if err != nil {
-				return errors.Wrap(err, "Could not store article in article db")
-			}
-		}
-	}
-
-	println("Successfully stored entities")
-
-	return nil
 }
 
 func GetDbAndParameters(query string) (*sql.DB, *services.JobParameters, error) {
@@ -274,7 +188,7 @@ func RedoGenderAnalysis(query string, manual bool) error {
 			}
 
 			if gender != nil {
-				storeErr := StorePersonGender(db, *p, byline.Name, *gender, "2")
+				storeErr := StorePersonGender(db, *p, byline.Name, *gender)
 				if storeErr != nil {
 					return errors.Wrap(storeErr, "Error storing content analysis")
 				}
@@ -293,11 +207,10 @@ func RedoGenderAnalysis(query string, manual bool) error {
 	return nil
 }
 
-func ComputeAndStoreGenderOfEntities(entities []models.Person, manual bool, corrections map[string]string, db *sql.DB, p *services.JobParameters) error {
+func ComputeAndStoreGenderOfEntities(entities []comprehend.Entity, manual bool, corrections map[string]string, db *sql.DB, p *services.JobParameters) error {
 	corrections["a"] = "hello"
 
-	for _, entitityWithNextWord := range entities {
-		entity := entitityWithNextWord.Entity
+	for _, entity := range entities {
 		if *entity.Type == "PERSON" && utils.EntityPassesConfidenceChecks(*entity.Text, *entity.Score) {
 			var gender *models.Gender
 			gender, err := GetGenderAnalysisForName(*entity.Text)
@@ -313,7 +226,7 @@ func ComputeAndStoreGenderOfEntities(entities []models.Person, manual bool, corr
 			}
 
 			if gender != nil {
-				storeErr := StorePersonGender(db, *p, *entity.Text, *gender, "3")
+				storeErr := StorePersonGender(db, *p, *entity.Text, *gender)
 				if storeErr != nil {
 					return errors.Wrap(storeErr, "Error storing content analysis")
 				}
@@ -324,7 +237,7 @@ func ComputeAndStoreGenderOfEntities(entities []models.Person, manual bool, corr
 }
 
 func GetAndStoreArticleEntities(query string) ([]*models.ContentAnalysis, error) {
-
+	fmt.Println("About to get and store entites")
 	db, p, err := GetDbAndParameters(query)
 
 	if err != nil {
@@ -333,11 +246,17 @@ func GetAndStoreArticleEntities(query string) ([]*models.ContentAnalysis, error)
 
 	contentSlice, err := services.GetArticlesArray(db, *p)
 
+	if err != nil {
+		return nil, errors.Wrap(err, "Error getting articles")
+	}
+
 	var contentAnalysisSlice []*models.ContentAnalysis
+	fmt.Println("Number of articles: ")
+	fmt.Println(len(contentSlice))
 
-	for _, element := range contentSlice {
+	for _, article := range contentSlice {
 
-		entitiesFromPostgres, err := services.GetEntitiesFromPostgres(element.Url)
+		entitiesFromPostgres, err := services.GetEntitiesFromPostgres(article.Url)
 
 		if err != nil {
 			return nil, errors.Wrap(err, "error checking if article has entities")
@@ -345,28 +264,32 @@ func GetAndStoreArticleEntities(query string) ([]*models.ContentAnalysis, error)
 
 		if len(entitiesFromPostgres) == 0 {
 
-			fmt.Println("About to get entities for article", element.Url)
+			fmt.Println("About to get entities for article", article.Url)
 
-			entities, err := services.GetEntitiesForArticle(element)
+			entities, err := services.GetEntitiesForArticle(article)
+			// fine here
 			if err != nil {
-				return nil, errors.Wrap(err, "Error getting entities for article "+element.Url)
+				return nil, errors.Wrap(err, "Error getting entities for article "+article.Url)
 			}
-			contentAnalysis := ConstructContentAnalysis(element, entities, false)
+			contentAnalysis := ConstructContentAnalysis(article, entities, false)
+			for _, entity := range contentAnalysis.Entities {
+				if *entity.Entity.Type != "DATE" && *entity.Entity.Type != "QUANTITY" &&  *entity.Entity.Type != "OTHER" {
+					err := StoreEntity(db, &entity, contentAnalysis)
+					if err != nil {
+						return nil, errors.Wrap(err, "Could not store article in article db")
+					}
+				}
+			}
+			fmt.Println("Finished storing entities for article " + article.Url)
 			contentAnalysisSlice = append(contentAnalysisSlice, contentAnalysis)
 		} else {
-			fmt.Println("already run analysis for ", element.Url)
+			fmt.Println("already run analysis for ", article.Url)
 		}
-	}
-
-	storeErr := StoreAllContentAnalysis(db, *p, contentAnalysisSlice)
-
-	if storeErr != nil {
-		return nil, errors.Wrap(storeErr, "Error storing content analysis")
 	}
 
 	closeError := db.Close()
 	if closeError != nil {
-		return nil, errors.Wrap(storeErr, "Error closing db")
+		return nil, errors.Wrap(closeError, "Error closing db")
 	}
 	return contentAnalysisSlice, nil
 }

@@ -3,6 +3,7 @@ package services
 import (
 	"database/sql"
 	"fmt"
+	"github.com/aws/aws-sdk-go/service/comprehend"
 	_ "github.com/lib/pq"
 	"github.com/pkg/errors"
 	"women-in-media-article-entity-analysis/internal/models"
@@ -71,7 +72,7 @@ func GetArticlesArray(db *sql.DB, p JobParameters) ([]models.Content, error) {
 	return articles, nil
 }
 
-func GetEntitiesFromPostgres(url string) ([]models.Person, error) {
+func GetEntitiesFromPostgres(url string) ([]comprehend.Entity, error) {
 
 	p := JobParameters{
 		Db: DbParameters{
@@ -91,7 +92,7 @@ func GetEntitiesFromPostgres(url string) ([]models.Person, error) {
 
 	defer db.Close()
 
-	entities, err := GetPeople(db, p.Query)
+	entities, err := GetEntities(db, p.Query)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "Error getting people from Postgres")
