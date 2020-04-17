@@ -7,7 +7,9 @@ download the key file
 # set permissions on the key file
 chmod 400 ~/Downloads/gpu.pem
 
-# launch an instance with your key pair, search gpu tensorflow and pick the CUDA one
+# Go to the EC2 section in the AWS console launch an instance with your key pair, search gpu tensorflow and pick the CUDA one
+
+i went for the gpu one with
 
 # connect via ssh with the username as ubuntu
 ssh -i ~/Downloads/gpu.pem ubuntu@ec2-52-211-145-177.eu-west-1.compute.amazonaws.com
@@ -15,8 +17,27 @@ ssh -i ~/Downloads/gpu.pem ubuntu@ec2-52-211-145-177.eu-west-1.compute.amazonaws
 # download standford core nlp on server
 curl -O -L http://nlp.stanford.edu/software/stanford-corenlp-full-2018-10-05.zip
 
+# unzip the file
+unzip stanford-corenlp-full-2018-10-05.zip
 
+# install java
+sudo apt install default-jre
 
+# move to server folder
+cd stanford-corenlp-full-2018-10-05/
 
 # to run the server
 java -mx4g -cp "*" edu.stanford.nlp.pipeline.StanfordCoreNLPServer -port 9000 -timeout 15000
+
+# clone the repo
+git clone https://github.com/jranks123/women-in-media-article-entity-analysis
+
+# change directory to the nlp program
+cd women-in-media-article-entity-analysis/scripts
+
+# install pandas and pycorenlp
+pip install --only-binary :all: pandas
+pip install pycorenlp
+
+# run the code
+python nlp.py
